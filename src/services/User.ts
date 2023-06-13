@@ -1,7 +1,8 @@
 import { PrismaClient } from "@prisma/client";
+import { UserValidations } from "../validations/userValidations";
+import { Response } from "express";
 
 const prisma = new PrismaClient();
-
 
 export class User {
     constructor(
@@ -23,12 +24,17 @@ export class User {
     }
 
     public async createUser(): Promise<void> {
-        await prisma.user.create({
-            data: {
-                name: this.name,
-                email: this.email,
-                admin: this.admin
-            }
-        });
+        const nameValidation = UserValidations.nameValidation(this.name);
+        const emailValidation = UserValidations.emailValidation(this.email);
+
+        if(nameValidation && emailValidation)
+            await prisma.user.create({
+                data: {
+                    name: (this.name).toUpperCase(),
+                    email: (this.email).toLowerCase(),
+                    admin: this.admin
+                }
+            });
+        else throw new Error("invalid fields");
     }
 }

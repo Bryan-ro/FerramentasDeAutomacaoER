@@ -17,13 +17,12 @@ export const verifyEmail = async (name: string, email: string, pass: string) => 
     else return verification;
 };
 
-interface payload {
-    name: string;
-    email: string;
-}
+const generateJwt = (payload: jsonWebtoken.payload ) => {
+    if(process.env.JTW_SECRET) return sign(payload,  process.env.JTW_SECRET, { expiresIn: "90m", algorithm: "HS512" });
+};
 
-const generateJwt = (payload: payload, ) => {
-    if(process.env.JTW_SECRET) return sign(payload,  process.env.JTW_SECRET, { expiresIn: "5m", algorithm: "HS512" });
+export const verifyJwt = (token: string) => {
+    if(process.env.JTW_SECRET) return verify(token, process.env.JTW_SECRET);
 };
 
 const cryptPassword = (pass: string) => {
