@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { verifyJwt } from "../security/verifyLogin";
 import { User } from "../services/User";
+import { Payload } from "@prisma/client/runtime";
 
 export class AuthMiddleware {
     public ifUserIsAuthenticated(req: Request, res: Response, next: NextFunction) {
@@ -11,7 +12,14 @@ export class AuthMiddleware {
             if(typeof token === "string") {
                 const auth = verifyJwt(token);
 
-                if(auth) return next();
+                if(auth) {
+                    req.user = {
+                        email: (auth as jsonWebtoken.payload).email,
+                        name: (auth as jsonWebtoken.payload).name
+                    };
+
+                    return next();
+                }
             } else return res.status(401).json({ error: "A autentificação não foi fornecida.", redirected: "tela de login", status: 401 });
 
         } catch (error) {

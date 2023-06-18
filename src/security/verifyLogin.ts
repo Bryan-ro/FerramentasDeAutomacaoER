@@ -1,7 +1,7 @@
 import mailTransporter from "../utils/mailTransporter";
 import { sign, verify } from "jsonwebtoken";
-import { PutMemoryCache } from "../utils/serverCache";
-import { AES } from "crypto-js";
+import { PutMemoryCache, getMemoryCache } from "../utils/serverCache";
+import CryptoJS from "crypto-js";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -26,5 +26,14 @@ export const verifyJwt = (token: string) => {
 };
 
 const cryptPassword = (pass: string) => {
-    if(process.env.AES_SECRET) return AES.encrypt(JSON.stringify(pass), process.env.AES_SECRET).toString();
+    if(process.env.AES_SECRET) return CryptoJS.AES.encrypt(JSON.stringify(pass), process.env.AES_SECRET).toString();
+};
+
+export const decryptPassword = (email: string) => {
+    if (process.env.AES_SECRET) {
+        const hash = getMemoryCache(email);
+
+        const bytes  = CryptoJS.AES.decrypt(hash, process.env.AES_SECRET);
+        return JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+    }
 };
