@@ -7,15 +7,27 @@ const auth = new AuthMiddleware();
 
 export class UserController {
     public routes() {
-        router.get("/getAllUsers", auth.ifUserIsAdmin, this.getAllUsers);
+        router.get("/get-users", auth.ifUserIsAdmin, this.getAllUsers);
+        router.get("/get-user", auth.ifUserIsAdmin, this.getUserByEmail);
         router.post("/login", this.login);
-        router.post("/createUser", auth.ifUserIsAdmin, this.createUser);
+        router.post("/create-user", auth.ifUserIsAdmin, this.createUser);
+        router.delete("/delete-user/:id", auth.ifUserIsAdmin, this.deleteUser);
 
         return router;
     }
 
     private async getAllUsers(req: Request, res: Response):Promise<Response> {
         return res.status(200).json({ users: await User.getAllUsers() });
+    }
+
+    private async getUserByEmail(req: Request, res: Response) {
+        const { email } =  req.query;
+
+        if(email) {
+            const user = await User.getUserByEmail(email.toString());
+
+            return res.status(200).json({ user: user ?? "O úsuario não existe." });
+        } else return res.status(400).json({ error: "E-mail não informado." });
     }
 
     private async login (req: Request, res: Response) {
@@ -56,5 +68,28 @@ export class UserController {
             else if ((error as errors).code === "P2002") return res.status(409).json({ error: "Usuário já existente.", status: 409 });
             else return res.status(500).json({ error: "erro desconhecido.", status: 500 });
         }
+    }
+
+    private async deleteUser(req: Request, res: Response) {
+        const id = req.params.id;
+        const { email } = req.user;
+        try {
+            if(Number.isNaN(Number(id))) {
+                return res.status(400).json({ error: "Id inválido", status: 400 });
+            }
+
+            const myUser = await User.getUserByEmail(email);
+
+            if(myUser?.id === Number(id)) return res.status(403).json({ error: "Você não pode deletar seu próprio usuário." });
+            else {
+                await User.deleteUser(Number(id));
+                return res.status(200).json({ message: "Usuário deletado" });
+            }
+
+        } catch (error) {
+            if((error as errors).code === "P2025") return res.status(400).json({ error: "O usuário não existe ou já foi deletado."});
+            else return res.status(500).json({ error: "Erro desconhecido. Se persistir, entre em contato com o Bryan." });
+        }
+
     }
 }

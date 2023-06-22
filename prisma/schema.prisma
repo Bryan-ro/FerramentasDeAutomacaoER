@@ -27,3 +27,11 @@ model BroadcastersReocord {
     codec           String
     emails          String
 }
+
+model recordHistory {
+    id Int @id @default(autoincrement())
+    date DateTime
+    destinations String
+    clock String
+    user String
+}

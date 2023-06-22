@@ -1,6 +1,5 @@
 import mailTransporter from "./mailTransporter";
 
-
 export default async (
     email: string,
     pass: string,
@@ -9,174 +8,54 @@ export default async (
     to: string,
     advertiser: string,
     broadcaster: string,
-    title1: string,
-    clock1: string,
-    duration1: number,
-    link1: string,
-    title2?: string,
-    clock2?: string,
-    duration2?: number,
-    link2?: string,
-    title3?: string,
-    clock3?: string,
-    duration3?: number,
-    link3?: string
+    infos: emailFormtat.emailProps
 ) => {
 
+    let mediaInfos = "";
     let template = "";
-    console.log(clock2);
-    if(!clock2 && !clock3) {
-        template = `
-        Olá, tudo bem?
-        <br>
-        <br>
-    Segue abaixo a entrega do material da anunciante ${advertiser}:
-    <br>
-    <br>
-    <table>
-        <tr class="tittle">
-            <td>Destino</td>
-            <td>Clock Number</td>
-            <td>Duração</td>
-            <td>Titulo</td>
-            <td>Link</td>
-        </tr>
-        <tr class="infos">
-            <td>${broadcaster}</td>
-            <td>${clock1}</td>
-            <td>${duration1}</td>
-            <td>${title1}</td>
-            <td><a href="${link1}">DOWNLOAD</a></td>
-        </tr>
-    </table>
-    <br>
-    <br>
-    Favor confirmar o recebimento.
-    <br>
-    <br>
-    `;
 
-        console.log("foi 1");
-    }
-    else if (clock2 && !clock3) {
-        template = `
-        Olá, tudo bem?
+    for (const i in infos.mediaInfos) {
+        if(!infos.mediaInfos[i].clock || !infos.mediaInfos[i].duration || !infos.mediaInfos[i].title || !infos.mediaInfos[i].link)
+            throw new Error("Preencha todos os campos para enviar os materiais aos destinos.");
+        mediaInfos += `
+        <table>
+            <tr class="tittle">
+                <td>Destino</td>
+                <td>Clock Number</td>
+                <td>Duração</td>
+                <td>Titulo</td>
+                <td>Link</td>
+            </tr>
+            <tr class="infos">
+                <td>${broadcaster}</td>
+                <td>${infos.mediaInfos[i].clock}</td>
+                <td>${infos.mediaInfos[i].duration}</td>
+                <td>${infos.mediaInfos[i].title}</td>
+                <td><a href="${infos.mediaInfos[i].link}">DOWNLOAD</a></td>
+            </tr>
+        </table>
         <br>
         <br>
-    Segue abaixo a entrega do material da anunciante ${advertiser}:
-    <br>
-    <br>
-    <table>
-    <tr class="tittle">
-        <td>Destino</td>
-        <td>Clock Number</td>
-        <td>Duração</td>
-        <td>Titulo</td>
-        <td>Link</td>
-    </tr>
-    <tr class="infos">
-        <td>${broadcaster}</td>
-        <td>${clock1}</td>
-        <td>${duration1}</td>
-        <td>${title1}</td>
-        <td><a href="${link1}">DOWNLOAD</a></td>
-    </tr>
-</table>
-    <br>
-    <br>
-    <table>
-    <tr class="tittle">
-        <td>Destino</td>
-        <td>Clock Numeber</td>
-        <td>Duração</td>
-        <td>Titulo</td>
-        <td>Link</td>
-    </tr>
-    <tr class="infos">
-        <td>${broadcaster}</td>
-        <td>${clock2}</td>
-        <td>${duration2}</td>
-        <td>${title2}</td>
-        <td><a href="${link2}">DOWNLOAD</a></td>
-    </tr>
-</table>
-<br>
-<br>
-Favor confirmar o recebimento.
-<br>
-<br>
-    `;
-        console.log("foi 2");
-    } else if(clock2 && clock3) {
-        template = `
-        Olá, tudo bem?
-        <br>
-        <br>
-    Segue abaixo a entrega do material da anunciante ${advertiser}:
-    <br>
-    <br>
-    <table>
-    <tr class="tittle">
-        <td>Destino</td>
-        <td>Clock Number</td>
-        <td>Duração</td>
-        <td>Titulo</td>
-        <td>Link</td>
-    </tr>
-    <tr class="infos">
-        <td>${broadcaster}</td>
-        <td>${clock1}</td>
-        <td>${duration1}</td>
-        <td>${title1}</td>
-        <td><a href="${link1}">DOWNLOAD</a></td>
-    </tr>
-</table>
-    <br>
-    <br>
-    <table>
-    <tr class="tittle">
-        <td>Destino</td>
-        <td>Clock Number</td>
-        <td>Duração</td>
-        <td>Titulo</td>
-        <td>Link</td>
-    </tr>
-    <tr class="infos">
-        <td>${broadcaster}</td>
-        <td>${clock2}</td>
-        <td>${duration2}</td>
-        <td>${title2}</td>
-        <td><a href="${link2}">DOWNLOAD</a></td>
-    </tr>
-</table>
-    <br>
-    <br>
-    <table>
-    <tr class="tittle">
-        <td>Destino</td>
-        <td>Clock Number</td>
-        <td>Titulo</td>
-        <td>Link</td>
-    </tr>
-    <tr class="infos">
-        <td>${broadcaster}</td>
-        <td>${clock3}</td>
-        <td>${duration3}</td>
-        <td>${title3}</td>
-        <td><a href="${link3}">DOWNLOAD</a></td>
-    </tr>
-</table>
-<br>
-<br>
-Favor confirmar o recebimento.
-<br>
-<br>
-    `;
-
-        console.log("foi 3");
+        `;
     }
 
-    if(template !== "") await mailTransporter(email, pass).sendMail({
+    if(mediaInfos !== "") {
+        template = `
+            Olá, tudo bem?
+            <br>
+                <br>
+            Segue abaixo a entrega do material da anunciante ${advertiser}:
+            <br>
+            <br>
+            ${mediaInfos}
+
+            Favor confirmar o recebimento.
+            <br>
+            <br>
+            `;
+    }
+
+    if(mediaInfos !== "") await mailTransporter(email, pass).sendMail({
         from: from,
         to: to,
         subject: `Entrega de material - ${advertiser} - ${broadcaster}`,

@@ -1,6 +1,5 @@
 import { PrismaClient } from "@prisma/client";
 import { UserValidations } from "../validations/userValidations";
-import { Response } from "express";
 
 const prisma = new PrismaClient();
 
@@ -36,5 +35,14 @@ export class User {
                 }
             });
         else throw new Error("invalid fields");
+    }
+
+    public static async deleteUser(id: number) {
+        await prisma.user.delete({
+            where: {
+                id: id
+            }
+        });
+
     }
 }
