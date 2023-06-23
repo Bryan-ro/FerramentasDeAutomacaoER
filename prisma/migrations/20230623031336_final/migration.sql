@@ -15,3 +15,15 @@ CREATE TABLE "BroadcastersReocord" (
     "codec" TEXT NOT NULL,
     "emails" TEXT NOT NULL
 );
+
+-- CreateTable
+CREATE TABLE "recordHistory" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "date" DATETIME NOT NULL,
+    "destinations" TEXT NOT NULL,
+    "clock" TEXT NOT NULL,
+    "user" TEXT NOT NULL
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
