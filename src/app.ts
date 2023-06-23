@@ -6,7 +6,6 @@ const app = express();
 const prisma = new PrismaClient();
 
 async function createFirstAdminUser () {
-
     try {
         await prisma.user.create({
             data: {
@@ -15,6 +14,8 @@ async function createFirstAdminUser () {
                 admin: true
             }
         });
+
+        console.log("Usuario admin criado com sucesso.");
     } catch (error) {
         console.log("O úsuario admin inicial já existia.");
     }
