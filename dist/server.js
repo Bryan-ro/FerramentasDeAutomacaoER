@@ -28833,7 +28833,7 @@ function createFirstAdminUser() {
       });
       console.log("Usuario admin criado com sucesso.");
     } catch (error) {
-      console.log("O \xFAsuario admin inicial j\xE1 existia.");
+      console.log(error);
     }
   });
 }

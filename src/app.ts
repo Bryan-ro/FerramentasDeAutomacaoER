@@ -17,7 +17,7 @@ async function createFirstAdminUser () {
 
         console.log("Usuario admin criado com sucesso.");
     } catch (error) {
-        console.log("O úsuario admin inicial já existia.");
+        console.log(error);
     }
 
 }
