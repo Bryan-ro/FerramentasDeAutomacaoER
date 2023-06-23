@@ -28828,7 +28828,9 @@ router3.use("/record", recordController.routes());
 var routes_default = router3;
 
 // src/app.ts
+var import_client4 = require("@prisma/client");
 var app = (0, import_express4.default)();
+var prisma4 = new import_client4.PrismaClient();
 app.use(import_express4.default.json());
 app.use(routes_default);
 var app_default = app;
