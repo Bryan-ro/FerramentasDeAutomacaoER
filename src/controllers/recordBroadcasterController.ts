@@ -1,6 +1,6 @@
 import { Request, Response, Router } from "express";
 import { RecordBroadcaster } from "../services/RecordBroadcaster";
-import { RecordHistory } from "../services/RecordHistory";
+// import { RecordHistory } from "../services/RecordHistory";
 import { AuthMiddleware } from "../middlewares/authMiddleware";
 import { decryptPassword } from "../security/verifyLogin";
 import sendMail from "../utils/sendMail";
@@ -11,7 +11,7 @@ const router = Router();
 export class RecordBroadcasterController {
     public routes () {
         router.get("/get-broadcaster", auth.ifUserIsAuthenticated, this.getFilteredBroadcaster);
-        router.get("/get-history", auth.ifUserIsAuthenticated, this.getFilteredHistory);
+        // router.get("/get-history", auth.ifUserIsAuthenticated, this.getFilteredHistory);
         router.post("/send-links", auth.ifUserIsAuthenticated, this.sendLinks);
         router.post("/create-broadcaster", auth.ifUserIsAdmin, this.createBroadcaster);
         router.put("/update/:id", auth.ifUserIsAdmin, this.updateBroadcaster);
@@ -29,48 +29,47 @@ export class RecordBroadcasterController {
 
     private async sendLinks (req: Request, res: Response) {
         const infos: emailFormtat.emailProps = req.body;
-        const { email, name } = req.user;
+        const { email, name, token } = req.user;
 
 
         try {
             if(!infos.mediaInfos[0].title || !infos.mediaInfos[0].clock || !infos.mediaInfos[0].duration || !infos.mediaInfos[0].link) return res.status(400).json({ error: "Preencha todos os campos para enviar o material." });
             if(infos.broadcasters.length === 0) return res.status(400).json({ error: "Nenhuma emissora selecionada." });
 
-            const history: history.history = {
-                destinations: [],
-                clock: [],
-                user: name
-            };
+            // const history: history.history = {
+            //     destinations: [],
+            //     clock: [],
+            //     user: name
+            // };
 
             for(const i in infos.broadcasters) {
                 const broadcaster = await RecordBroadcaster.getBroadcasterById(infos.broadcasters[i]);
-                const pass = decryptPassword(email);
+                const pass = decryptPassword(token);
 
                 if(broadcaster) {
-                    await sendMail(email, pass, name, `${name} <${email}>`, broadcaster.emails , infos.advertiser, broadcaster.broadcasterName, infos);
+                    await sendMail(email, pass, name, `${name} <${email}>`, broadcaster.emails , infos.PointOfSaleIsRj, infos.advertiser, broadcaster.broadcasterName, infos);
 
-                    history.destinations.push(broadcaster.broadcasterName);
+                    // history.destinations.push(broadcaster.broadcasterName);
                 }
             }
 
-            infos.mediaInfos.forEach((media) => {
-                history.clock.push(media.clock);
-            });
+            // infos.mediaInfos.forEach((media) => {
+            //     history.clock.push(media.clock);
+            // });
 
-            const recordHistory = new RecordHistory(
-                history.destinations.join(","),
-                history.clock.join(","),
-                history.user
-            );
+            // const recordHistory = new RecordHistory(
+            //     history.destinations.join(","),
+            //     history.clock.join(","),
+            //     history.user
+            // );
 
-            await recordHistory.RecordHistory();
+            // await recordHistory.RecordHistory();
 
-            return res.status(200).json({ message: "E-mails enviados com sucesso." });
+            return res.status(200).json({ message: "E-mails enviados com sucesso.", status: 200 });
 
         } catch (error) {
-            if((error as errors).message === "Cannot read properties of null (reading 'salt')") return res.status(500).json({ error: "Erro ao enviar e-mails. Necessário refazer login." });
             if((error as errors).message === "Preencha todos os campos para enviar os materiais aos destinos.") return res.status(400).json({ error: (error as errors).message, status: 400 });
-            else return res.status(500).json({ error: "Erro desconhecido. Se persistir entre em contato com o Bryan." });
+            else return res.status(500).json({ error: "Erro desconhecido. Se persistir entre em contato com o Bryan.", status: 500 });
         }
     }
 
@@ -111,11 +110,11 @@ export class RecordBroadcasterController {
         }
     }
 
-    private async getFilteredHistory (req: Request, res: Response) {
-        const { filter } = req.query;
+    // private async getFilteredHistory (req: Request, res: Response) {
+    //     const { filter } = req.query;
 
-        const history = await RecordHistory.getDestinationsFiltered(filter?.toString());
+    //     const history = await RecordHistory.getDestinationsFiltered(filter?.toString());
 
-        return res.status(200).json({ history: history });
-    }
+    //     return res.status(200).json({ history: history });
+    // }
 }

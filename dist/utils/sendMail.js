@@ -60,9 +60,12 @@ var mailTransporter_default = (email, pass) => (0, import_nodemailer.createTrans
 });
 
 // src/utils/sendMail.ts
-var sendMail_default = (email, pass, name, from, to, advertiser, broadcaster, infos) => __async(void 0, null, function* () {
+var sendMail_default = (email, pass, name, from, to, PointOfSaleIsRj, advertiser, broadcaster, infos) => __async(void 0, null, function* () {
   let mediaInfos = "";
   let template = "";
+  if (PointOfSaleIsRj) {
+    to += "; bryanadstream0@gmail.com";
+  }
   for (const i in infos.mediaInfos) {
     if (!infos.mediaInfos[i].clock || !infos.mediaInfos[i].duration || !infos.mediaInfos[i].title || !infos.mediaInfos[i].link)
       throw new Error("Preencha todos os campos para enviar os materiais aos destinos.");

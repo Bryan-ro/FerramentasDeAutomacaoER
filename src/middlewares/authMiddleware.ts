@@ -14,7 +14,8 @@ export class AuthMiddleware {
                 if(auth) {
                     req.user = {
                         email: (auth as jsonWebtoken.payload).email,
-                        name: (auth as jsonWebtoken.payload).name
+                        name: (auth as jsonWebtoken.payload).name,
+                        token: (auth as jsonWebtoken.payload).token
                     };
 
                     return next();
@@ -39,7 +40,8 @@ export class AuthMiddleware {
                 if(user?.admin) {
                     req.user = {
                         email: (auth as jsonWebtoken.payload).email,
-                        name: (auth as jsonWebtoken.payload).name
+                        name: (auth as jsonWebtoken.payload).name,
+                        token: (auth as jsonWebtoken.payload).token
                     };
 
                     return next();

@@ -21,7 +21,7 @@ model User {
 
 model BroadcastersReocord {
     id              Int    @id @default(autoincrement())
-    broadcasterName String
+    broadcasterName String @unique
     city            String
     state           String
     codec           String

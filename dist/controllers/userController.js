@@ -245,6 +245,16 @@ var User = class {
       });
     });
   }
+  static getUserById(id) {
+    return __async(this, null, function* () {
+      const user = yield prisma.user.findUnique({
+        where: {
+          id
+        }
+      });
+      return user;
+    });
+  }
   createUser() {
     return __async(this, null, function* () {
       const nameValidation = UserValidations.nameValidation(this.name);
@@ -289,14 +299,6 @@ var mailTransporter_default = (email, pass) => (0, import_nodemailer.createTrans
 
 // src/security/verifyLogin.ts
 var import_jsonwebtoken = require("jsonwebtoken");
-
-// src/utils/serverCache.ts
-var import_memory_cache = __toESM(require("memory-cache"));
-var PutMemoryCache = (key, value) => {
-  import_memory_cache.default.put(key, value, 54e5);
-};
-
-// src/security/verifyLogin.ts
 var import_crypto_js = __toESM(require("crypto-js"));
 var import_dotenv = __toESM(require_main());
 import_dotenv.default.config();
@@ -305,8 +307,7 @@ var verifyEmail = (name, email, pass) => __async(void 0, null, function* () {
   if (verification) {
     const encryptedPass = cryptPassword(pass);
     if (encryptedPass)
-      PutMemoryCache(email, encryptedPass);
-    return generateJwt({ email, name });
+      return generateJwt({ email, name, token: encryptedPass });
   } else
     return verification;
 });
@@ -333,7 +334,8 @@ var AuthMiddleware = class {
         if (auth2) {
           req.user = {
             email: auth2.email,
-            name: auth2.name
+            name: auth2.name,
+            token: auth2.token
           };
           return next();
         }
@@ -353,7 +355,8 @@ var AuthMiddleware = class {
           if (user == null ? void 0 : user.admin) {
             req.user = {
               email: auth2.email,
-              name: auth2.name
+              name: auth2.name,
+              token: auth2.token
             };
             return next();
           } else if (!(user == null ? void 0 : user.admin))
@@ -376,6 +379,7 @@ var UserController = class {
     router.get("/get-user", auth.ifUserIsAdmin, this.getUserByEmail);
     router.post("/login", this.login);
     router.post("/create-user", auth.ifUserIsAdmin, this.createUser);
+    router.post("/verify-login", auth.ifUserIsAuthenticated, this.verifyLogin);
     router.delete("/delete-user/:id", auth.ifUserIsAdmin, this.deleteUser);
     return router;
   }
@@ -404,11 +408,12 @@ var UserController = class {
         if (user) {
           const auth2 = yield verifyEmail(user.name, user.email, pass);
           if (auth2)
-            return res.status(200).json({ token: auth2, user: user.email, name: user.name, redirected: "Home page", status: 200 });
+            return res.status(200).json({ token: auth2, user: user.email, name: user.name, admin: user.admin, redirected: "Home page", status: 200 });
         } else {
           return res.status(401).json({ message: "Usu\xE1rio ou senha inv\xE1lido", status: 401 });
         }
       } catch (error) {
+        console.log(error);
         if (error.responseCode === 535)
           return res.status(401).json({ message: "Usu\xE1rio ou senha inv\xE1lido", status: 401 });
         else
@@ -416,11 +421,16 @@ var UserController = class {
       }
     });
   }
+  verifyLogin(req, res) {
+    return __async(this, null, function* () {
+      return res.status(200).json({ redirected: "Home page", status: 200 });
+    });
+  }
   createUser(req, res) {
     return __async(this, null, function* () {
-      const { name, email } = req.body;
+      const { name, email, admin } = req.body;
       try {
-        const user = new User(name, email);
+        const user = new User(name, email, admin);
         yield user.createUser();
         return res.status(201).json({ message: "Usu\xE1rio criado com sucesso.", status: 201 });
       } catch (error) {
@@ -443,12 +453,14 @@ var UserController = class {
         if (Number.isNaN(Number(id))) {
           return res.status(400).json({ error: "Id inv\xE1lido", status: 400 });
         }
-        const myUser = yield User.getUserByEmail(email);
-        if ((myUser == null ? void 0 : myUser.id) === Number(id))
-          return res.status(403).json({ error: "Voc\xEA n\xE3o pode deletar seu pr\xF3prio usu\xE1rio." });
+        const userWillBeDeleted = yield User.getUserById(Number(id));
+        if (email === (userWillBeDeleted == null ? void 0 : userWillBeDeleted.email))
+          return res.status(403).json({ error: "Voc\xEA n\xE3o pode deletar seu pr\xF3prio usu\xE1rio.", status: 403 });
+        if ((userWillBeDeleted == null ? void 0 : userWillBeDeleted.email) === "bryan.rocha@extremereach.com")
+          return res.status(403).json({ error: "Voc\xEA n\xE3o tem permiss\xE3o para deletar o usu\xE1rio 'Bryan Rocha'", status: 401 });
         else {
           yield User.deleteUser(Number(id));
-          return res.status(200).json({ message: "Usu\xE1rio deletado" });
+          return res.status(200).json({ message: "Usu\xE1rio deletado", status: 200 });
         }
       } catch (error) {
         if (error.code === "P2025")

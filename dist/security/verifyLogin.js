@@ -226,17 +226,6 @@ var mailTransporter_default = (email, pass) => (0, import_nodemailer.createTrans
 
 // src/security/verifyLogin.ts
 var import_jsonwebtoken = require("jsonwebtoken");
-
-// src/utils/serverCache.ts
-var import_memory_cache = __toESM(require("memory-cache"));
-var PutMemoryCache = (key, value) => {
-  import_memory_cache.default.put(key, value, 54e5);
-};
-var getMemoryCache = (key) => {
-  return import_memory_cache.default.get(key);
-};
-
-// src/security/verifyLogin.ts
 var import_crypto_js = __toESM(require("crypto-js"));
 var import_dotenv = __toESM(require_main());
 import_dotenv.default.config();
@@ -245,8 +234,7 @@ var verifyEmail = (name, email, pass) => __async(void 0, null, function* () {
   if (verification) {
     const encryptedPass = cryptPassword(pass);
     if (encryptedPass)
-      PutMemoryCache(email, encryptedPass);
-    return generateJwt({ email, name });
+      return generateJwt({ email, name, token: encryptedPass });
   } else
     return verification;
 });
@@ -262,9 +250,8 @@ var cryptPassword = (pass) => {
   if (process.env.AES_SECRET)
     return import_crypto_js.default.AES.encrypt(JSON.stringify(pass), process.env.AES_SECRET).toString();
 };
-var decryptPassword = (email) => {
+var decryptPassword = (hash) => {
   if (process.env.AES_SECRET) {
-    const hash = getMemoryCache(email);
     const bytes = import_crypto_js.default.AES.decrypt(hash, process.env.AES_SECRET);
     return JSON.parse(bytes.toString(import_crypto_js.default.enc.Utf8));
   }

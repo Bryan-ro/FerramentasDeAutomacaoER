@@ -27,3 +27,6 @@ CREATE TABLE "recordHistory" (
 
 -- CreateIndex
 CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "BroadcastersReocord_broadcasterName_key" ON "BroadcastersReocord"("broadcasterName");

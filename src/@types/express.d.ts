@@ -3,6 +3,7 @@ declare namespace Express {
         user: {
             email: string;
             name: string;
+            token: string;
         }
     }
 }

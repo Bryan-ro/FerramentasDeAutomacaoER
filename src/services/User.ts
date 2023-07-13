@@ -22,6 +22,16 @@ export class User {
         });
     }
 
+    public static async getUserById(id: number) {
+        const user = await prisma.user.findUnique({
+            where: {
+                id: id
+            }
+        });
+
+        return user;
+    }
+
     public async createUser(): Promise<void> {
         const nameValidation = UserValidations.nameValidation(this.name);
         const emailValidation = UserValidations.emailValidation(this.email);

@@ -212,11 +212,6 @@ var import_nodemailer = require("nodemailer");
 
 // src/security/verifyLogin.ts
 var import_jsonwebtoken = require("jsonwebtoken");
-
-// src/utils/serverCache.ts
-var import_memory_cache = __toESM(require("memory-cache"));
-
-// src/security/verifyLogin.ts
 var import_crypto_js = __toESM(require("crypto-js"));
 var import_dotenv = __toESM(require_main());
 import_dotenv.default.config();
@@ -262,6 +257,16 @@ var User = class {
       });
     });
   }
+  static getUserById(id) {
+    return __async(this, null, function* () {
+      const user = yield prisma.user.findUnique({
+        where: {
+          id
+        }
+      });
+      return user;
+    });
+  }
   createUser() {
     return __async(this, null, function* () {
       const nameValidation = UserValidations.nameValidation(this.name);
@@ -299,7 +304,8 @@ var AuthMiddleware = class {
         if (auth) {
           req.user = {
             email: auth.email,
-            name: auth.name
+            name: auth.name,
+            token: auth.token
           };
           return next();
         }
@@ -319,7 +325,8 @@ var AuthMiddleware = class {
           if (user == null ? void 0 : user.admin) {
             req.user = {
               email: auth.email,
-              name: auth.name
+              name: auth.name,
+              token: auth.token
             };
             return next();
           } else if (!(user == null ? void 0 : user.admin))

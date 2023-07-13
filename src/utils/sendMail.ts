@@ -6,6 +6,7 @@ export default async (
     name: string,
     from: string,
     to: string,
+    PointOfSaleIsRj: boolean,
     advertiser: string,
     broadcaster: string,
     infos: emailFormtat.emailProps
@@ -13,6 +14,10 @@ export default async (
 
     let mediaInfos = "";
     let template = "";
+
+    if(PointOfSaleIsRj) {
+        to += "; bryanadstream0@gmail.com";
+    }
 
     for (const i in infos.mediaInfos) {
         if(!infos.mediaInfos[i].clock || !infos.mediaInfos[i].duration || !infos.mediaInfos[i].title || !infos.mediaInfos[i].link)

@@ -11,6 +11,7 @@ declare namespace emailFormtat {
     interface emailProps {
         mediaInfos: mediaInfosProps[];
         advertiser: string;
+        PointOfSaleIsRj: boolean;
         broadcasters: number[];
     }
 }

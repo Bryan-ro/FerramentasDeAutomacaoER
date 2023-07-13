@@ -11,6 +11,7 @@ export class UserController {
         router.get("/get-user", auth.ifUserIsAdmin, this.getUserByEmail);
         router.post("/login", this.login);
         router.post("/create-user", auth.ifUserIsAdmin, this.createUser);
+        router.post("/verify-login", auth.ifUserIsAuthenticated, this.verifyLogin);
         router.delete("/delete-user/:id", auth.ifUserIsAdmin, this.deleteUser);
 
         return router;
@@ -41,23 +42,28 @@ export class UserController {
             if (user) {
                 const auth =  await verifyEmail(user.name, user.email, pass);
 
-                if(auth) return res.status(200).json({ token: auth, user: user.email, name: user.name , redirected: "Home page", status: 200 });
+                if(auth) return res.status(200).json({ token: auth, user: user.email, name: user.name, admin: user.admin, redirected: "Home page", status: 200 });
 
             } else {
                 return res.status(401).json({ message: "Usuário ou senha inválido", status: 401 });
             }
 
         } catch (error) {
+            console.log(error);
             if((error as errors).responseCode === 535) return res.status(401).json({ message: "Usuário ou senha inválido", status: 401 });
             else return res.status(500).json({ error: "Erro desconhecido.", status: 500 });
         }
     }
 
+    private async verifyLogin(req: Request, res: Response) {
+        return res.status(200).json({ redirected: "Home page", status: 200 });
+    }
+
     private async createUser(req: Request, res: Response) {
-        const { name, email } = req.body;
+        const { name, email, admin } = req.body;
 
         try {
-            const user = new User(name, email);
+            const user = new User(name, email, admin);
 
             await user.createUser();
 
@@ -78,12 +84,13 @@ export class UserController {
                 return res.status(400).json({ error: "Id inválido", status: 400 });
             }
 
-            const myUser = await User.getUserByEmail(email);
+            const userWillBeDeleted = await User.getUserById(Number(id));
 
-            if(myUser?.id === Number(id)) return res.status(403).json({ error: "Você não pode deletar seu próprio usuário." });
+            if(email === userWillBeDeleted?.email) return res.status(403).json({ error: "Você não pode deletar seu próprio usuário.", status: 403 });
+            if(userWillBeDeleted?.email === "bryan.rocha@extremereach.com") return res.status(403).json({ error: "Você não tem permissão para deletar o usuário 'Bryan Rocha'", status: 401 });
             else {
                 await User.deleteUser(Number(id));
-                return res.status(200).json({ message: "Usuário deletado" });
+                return res.status(200).json({ message: "Usuário deletado", status: 200 });
             }
 
         } catch (error) {

@@ -247,6 +247,16 @@ var User = class {
       });
     });
   }
+  static getUserById(id) {
+    return __async(this, null, function* () {
+      const user = yield prisma.user.findUnique({
+        where: {
+          id
+        }
+      });
+      return user;
+    });
+  }
   createUser() {
     return __async(this, null, function* () {
       const nameValidation = UserValidations.nameValidation(this.name);
@@ -291,17 +301,6 @@ var mailTransporter_default = (email, pass) => (0, import_nodemailer.createTrans
 
 // src/security/verifyLogin.ts
 var import_jsonwebtoken = require("jsonwebtoken");
-
-// src/utils/serverCache.ts
-var import_memory_cache = __toESM(require("memory-cache"));
-var PutMemoryCache = (key, value) => {
-  import_memory_cache.default.put(key, value, 54e5);
-};
-var getMemoryCache = (key) => {
-  return import_memory_cache.default.get(key);
-};
-
-// src/security/verifyLogin.ts
 var import_crypto_js = __toESM(require("crypto-js"));
 var import_dotenv = __toESM(require_main());
 import_dotenv.default.config();
@@ -310,8 +309,7 @@ var verifyEmail = (name, email, pass) => __async(void 0, null, function* () {
   if (verification) {
     const encryptedPass = cryptPassword(pass);
     if (encryptedPass)
-      PutMemoryCache(email, encryptedPass);
-    return generateJwt({ email, name });
+      return generateJwt({ email, name, token: encryptedPass });
   } else
     return verification;
 });
@@ -327,9 +325,8 @@ var cryptPassword = (pass) => {
   if (process.env.AES_SECRET)
     return import_crypto_js.default.AES.encrypt(JSON.stringify(pass), process.env.AES_SECRET).toString();
 };
-var decryptPassword = (email) => {
+var decryptPassword = (hash) => {
   if (process.env.AES_SECRET) {
-    const hash = getMemoryCache(email);
     const bytes = import_crypto_js.default.AES.decrypt(hash, process.env.AES_SECRET);
     return JSON.parse(bytes.toString(import_crypto_js.default.enc.Utf8));
   }
@@ -345,7 +342,8 @@ var AuthMiddleware = class {
         if (auth3) {
           req.user = {
             email: auth3.email,
-            name: auth3.name
+            name: auth3.name,
+            token: auth3.token
           };
           return next();
         }
@@ -365,7 +363,8 @@ var AuthMiddleware = class {
           if (user == null ? void 0 : user.admin) {
             req.user = {
               email: auth3.email,
-              name: auth3.name
+              name: auth3.name,
+              token: auth3.token
             };
             return next();
           } else if (!(user == null ? void 0 : user.admin))
@@ -388,6 +387,7 @@ var UserController = class {
     router.get("/get-user", auth.ifUserIsAdmin, this.getUserByEmail);
     router.post("/login", this.login);
     router.post("/create-user", auth.ifUserIsAdmin, this.createUser);
+    router.post("/verify-login", auth.ifUserIsAuthenticated, this.verifyLogin);
     router.delete("/delete-user/:id", auth.ifUserIsAdmin, this.deleteUser);
     return router;
   }
@@ -416,11 +416,12 @@ var UserController = class {
         if (user) {
           const auth3 = yield verifyEmail(user.name, user.email, pass);
           if (auth3)
-            return res.status(200).json({ token: auth3, user: user.email, name: user.name, redirected: "Home page", status: 200 });
+            return res.status(200).json({ token: auth3, user: user.email, name: user.name, admin: user.admin, redirected: "Home page", status: 200 });
         } else {
           return res.status(401).json({ message: "Usu\xE1rio ou senha inv\xE1lido", status: 401 });
         }
       } catch (error) {
+        console.log(error);
         if (error.responseCode === 535)
           return res.status(401).json({ message: "Usu\xE1rio ou senha inv\xE1lido", status: 401 });
         else
@@ -428,11 +429,16 @@ var UserController = class {
       }
     });
   }
+  verifyLogin(req, res) {
+    return __async(this, null, function* () {
+      return res.status(200).json({ redirected: "Home page", status: 200 });
+    });
+  }
   createUser(req, res) {
     return __async(this, null, function* () {
-      const { name, email } = req.body;
+      const { name, email, admin } = req.body;
       try {
-        const user = new User(name, email);
+        const user = new User(name, email, admin);
         yield user.createUser();
         return res.status(201).json({ message: "Usu\xE1rio criado com sucesso.", status: 201 });
       } catch (error) {
@@ -455,12 +461,14 @@ var UserController = class {
         if (Number.isNaN(Number(id))) {
           return res.status(400).json({ error: "Id inv\xE1lido", status: 400 });
         }
-        const myUser = yield User.getUserByEmail(email);
-        if ((myUser == null ? void 0 : myUser.id) === Number(id))
-          return res.status(403).json({ error: "Voc\xEA n\xE3o pode deletar seu pr\xF3prio usu\xE1rio." });
+        const userWillBeDeleted = yield User.getUserById(Number(id));
+        if (email === (userWillBeDeleted == null ? void 0 : userWillBeDeleted.email))
+          return res.status(403).json({ error: "Voc\xEA n\xE3o pode deletar seu pr\xF3prio usu\xE1rio.", status: 403 });
+        if ((userWillBeDeleted == null ? void 0 : userWillBeDeleted.email) === "bryan.rocha@extremereach.com")
+          return res.status(403).json({ error: "Voc\xEA n\xE3o tem permiss\xE3o para deletar o usu\xE1rio 'Bryan Rocha'", status: 401 });
         else {
           yield User.deleteUser(Number(id));
-          return res.status(200).json({ message: "Usu\xE1rio deletado" });
+          return res.status(200).json({ message: "Usu\xE1rio deletado", status: 200 });
         }
       } catch (error) {
         if (error.code === "P2025")
@@ -28545,63 +28553,13 @@ var RecordBroadcaster = class {
   }
 };
 
-// src/services/RecordHistory.ts
-var import_client3 = require("@prisma/client");
-var prisma3 = new import_client3.PrismaClient();
-var RecordHistory = class {
-  constructor(destinations, clock, user) {
-    this.destinations = destinations;
-    this.clock = clock;
-    this.user = user;
-  }
-  static getDestinationsFiltered(filter) {
-    return __async(this, null, function* () {
-      const history = yield prisma3.recordHistory.findMany({
-        where: {
-          OR: [
-            {
-              destinations: {
-                contains: filter
-              }
-            },
-            {
-              clock: {
-                contains: filter
-              }
-            },
-            {
-              user: {
-                contains: filter
-              }
-            }
-          ]
-        }
-      });
-      for (const i in history) {
-        history[i].destinations = history[i].destinations.split(",");
-        history[i].clock = history[i].clock.split(",");
-      }
-      return history;
-    });
-  }
-  RecordHistory() {
-    return __async(this, null, function* () {
-      yield prisma3.recordHistory.create({
-        data: {
-          date: /* @__PURE__ */ new Date(),
-          clock: this.clock,
-          destinations: this.destinations,
-          user: this.user
-        }
-      });
-    });
-  }
-};
-
 // src/utils/sendMail.ts
-var sendMail_default = (email, pass, name, from, to, advertiser, broadcaster, infos) => __async(void 0, null, function* () {
+var sendMail_default = (email, pass, name, from, to, PointOfSaleIsRj, advertiser, broadcaster, infos) => __async(void 0, null, function* () {
   let mediaInfos = "";
   let template = "";
+  if (PointOfSaleIsRj) {
+    to += "; bryanadstream0@gmail.com";
+  }
   for (const i in infos.mediaInfos) {
     if (!infos.mediaInfos[i].clock || !infos.mediaInfos[i].duration || !infos.mediaInfos[i].title || !infos.mediaInfos[i].link)
       throw new Error("Preencha todos os campos para enviar os materiais aos destinos.");
@@ -28715,7 +28673,6 @@ var router2 = (0, import_express2.Router)();
 var RecordBroadcasterController = class {
   routes() {
     router2.get("/get-broadcaster", auth2.ifUserIsAuthenticated, this.getFilteredBroadcaster);
-    router2.get("/get-history", auth2.ifUserIsAuthenticated, this.getFilteredHistory);
     router2.post("/send-links", auth2.ifUserIsAuthenticated, this.sendLinks);
     router2.post("/create-broadcaster", auth2.ifUserIsAdmin, this.createBroadcaster);
     router2.put("/update/:id", auth2.ifUserIsAdmin, this.updateBroadcaster);
@@ -28731,42 +28688,25 @@ var RecordBroadcasterController = class {
   sendLinks(req, res) {
     return __async(this, null, function* () {
       const infos = req.body;
-      const { email, name } = req.user;
+      const { email, name, token } = req.user;
       try {
         if (!infos.mediaInfos[0].title || !infos.mediaInfos[0].clock || !infos.mediaInfos[0].duration || !infos.mediaInfos[0].link)
           return res.status(400).json({ error: "Preencha todos os campos para enviar o material." });
         if (infos.broadcasters.length === 0)
           return res.status(400).json({ error: "Nenhuma emissora selecionada." });
-        const history = {
-          destinations: [],
-          clock: [],
-          user: name
-        };
         for (const i in infos.broadcasters) {
           const broadcaster = yield RecordBroadcaster.getBroadcasterById(infos.broadcasters[i]);
-          const pass = decryptPassword(email);
+          const pass = decryptPassword(token);
           if (broadcaster) {
-            yield sendMail_default(email, pass, name, `${name} <${email}>`, broadcaster.emails, infos.advertiser, broadcaster.broadcasterName, infos);
-            history.destinations.push(broadcaster.broadcasterName);
+            yield sendMail_default(email, pass, name, `${name} <${email}>`, broadcaster.emails, infos.PointOfSaleIsRj, infos.advertiser, broadcaster.broadcasterName, infos);
           }
         }
-        infos.mediaInfos.forEach((media) => {
-          history.clock.push(media.clock);
-        });
-        const recordHistory = new RecordHistory(
-          history.destinations.join(","),
-          history.clock.join(","),
-          history.user
-        );
-        yield recordHistory.RecordHistory();
-        return res.status(200).json({ message: "E-mails enviados com sucesso." });
+        return res.status(200).json({ message: "E-mails enviados com sucesso.", status: 200 });
       } catch (error) {
-        if (error.message === "Cannot read properties of null (reading 'salt')")
-          return res.status(500).json({ error: "Erro ao enviar e-mails. Necess\xE1rio refazer login." });
         if (error.message === "Preencha todos os campos para enviar os materiais aos destinos.")
           return res.status(400).json({ error: error.message, status: 400 });
         else
-          return res.status(500).json({ error: "Erro desconhecido. Se persistir entre em contato com o Bryan." });
+          return res.status(500).json({ error: "Erro desconhecido. Se persistir entre em contato com o Bryan.", status: 500 });
       }
     });
   }
@@ -28808,13 +28748,11 @@ var RecordBroadcasterController = class {
       }
     });
   }
-  getFilteredHistory(req, res) {
-    return __async(this, null, function* () {
-      const { filter } = req.query;
-      const history = yield RecordHistory.getDestinationsFiltered(filter == null ? void 0 : filter.toString());
-      return res.status(200).json({ history });
-    });
-  }
+  // private async getFilteredHistory (req: Request, res: Response) {
+  //     const { filter } = req.query;
+  //     const history = await RecordHistory.getDestinationsFiltered(filter?.toString());
+  //     return res.status(200).json({ history: history });
+  // }
 };
 
 // src/routes/routes.ts

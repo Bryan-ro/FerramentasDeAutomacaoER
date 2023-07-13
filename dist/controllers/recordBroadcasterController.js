@@ -28278,59 +28278,6 @@ var RecordBroadcaster = class {
   }
 };
 
-// src/services/RecordHistory.ts
-var import_client2 = require("@prisma/client");
-var prisma2 = new import_client2.PrismaClient();
-var RecordHistory = class {
-  constructor(destinations, clock, user) {
-    this.destinations = destinations;
-    this.clock = clock;
-    this.user = user;
-  }
-  static getDestinationsFiltered(filter) {
-    return __async(this, null, function* () {
-      const history = yield prisma2.recordHistory.findMany({
-        where: {
-          OR: [
-            {
-              destinations: {
-                contains: filter
-              }
-            },
-            {
-              clock: {
-                contains: filter
-              }
-            },
-            {
-              user: {
-                contains: filter
-              }
-            }
-          ]
-        }
-      });
-      for (const i in history) {
-        history[i].destinations = history[i].destinations.split(",");
-        history[i].clock = history[i].clock.split(",");
-      }
-      return history;
-    });
-  }
-  RecordHistory() {
-    return __async(this, null, function* () {
-      yield prisma2.recordHistory.create({
-        data: {
-          date: /* @__PURE__ */ new Date(),
-          clock: this.clock,
-          destinations: this.destinations,
-          user: this.user
-        }
-      });
-    });
-  }
-};
-
 // src/utils/mailTransporter.ts
 var import_nodemailer = require("nodemailer");
 var mailTransporter_default = (email, pass) => (0, import_nodemailer.createTransport)({
@@ -28348,14 +28295,6 @@ var mailTransporter_default = (email, pass) => (0, import_nodemailer.createTrans
 
 // src/security/verifyLogin.ts
 var import_jsonwebtoken = require("jsonwebtoken");
-
-// src/utils/serverCache.ts
-var import_memory_cache = __toESM(require("memory-cache"));
-var getMemoryCache = (key) => {
-  return import_memory_cache.default.get(key);
-};
-
-// src/security/verifyLogin.ts
 var import_crypto_js = __toESM(require("crypto-js"));
 var import_dotenv = __toESM(require_main());
 import_dotenv.default.config();
@@ -28363,16 +28302,15 @@ var verifyJwt = (token) => {
   if (process.env.JTW_SECRET)
     return (0, import_jsonwebtoken.verify)(token, process.env.JTW_SECRET);
 };
-var decryptPassword = (email) => {
+var decryptPassword = (hash) => {
   if (process.env.AES_SECRET) {
-    const hash = getMemoryCache(email);
     const bytes = import_crypto_js.default.AES.decrypt(hash, process.env.AES_SECRET);
     return JSON.parse(bytes.toString(import_crypto_js.default.enc.Utf8));
   }
 };
 
 // src/services/User.ts
-var import_client3 = require("@prisma/client");
+var import_client2 = require("@prisma/client");
 
 // src/validations/userValidations.ts
 var UserValidations = class {
@@ -28387,7 +28325,7 @@ var UserValidations = class {
 };
 
 // src/services/User.ts
-var prisma3 = new import_client3.PrismaClient();
+var prisma2 = new import_client2.PrismaClient();
 var User = class {
   constructor(name, email, admin = false) {
     this.name = name;
@@ -28396,16 +28334,26 @@ var User = class {
   }
   static getAllUsers() {
     return __async(this, null, function* () {
-      return yield prisma3.user.findMany();
+      return yield prisma2.user.findMany();
     });
   }
   static getUserByEmail(email) {
     return __async(this, null, function* () {
-      return yield prisma3.user.findUnique({
+      return yield prisma2.user.findUnique({
         where: {
           email
         }
       });
+    });
+  }
+  static getUserById(id) {
+    return __async(this, null, function* () {
+      const user = yield prisma2.user.findUnique({
+        where: {
+          id
+        }
+      });
+      return user;
     });
   }
   createUser() {
@@ -28413,7 +28361,7 @@ var User = class {
       const nameValidation = UserValidations.nameValidation(this.name);
       const emailValidation = UserValidations.emailValidation(this.email);
       if (nameValidation && emailValidation)
-        yield prisma3.user.create({
+        yield prisma2.user.create({
           data: {
             name: this.name.toUpperCase(),
             email: this.email.toLowerCase(),
@@ -28426,7 +28374,7 @@ var User = class {
   }
   static deleteUser(id) {
     return __async(this, null, function* () {
-      yield prisma3.user.delete({
+      yield prisma2.user.delete({
         where: {
           id
         }
@@ -28445,7 +28393,8 @@ var AuthMiddleware = class {
         if (auth2) {
           req.user = {
             email: auth2.email,
-            name: auth2.name
+            name: auth2.name,
+            token: auth2.token
           };
           return next();
         }
@@ -28465,7 +28414,8 @@ var AuthMiddleware = class {
           if (user == null ? void 0 : user.admin) {
             req.user = {
               email: auth2.email,
-              name: auth2.name
+              name: auth2.name,
+              token: auth2.token
             };
             return next();
           } else if (!(user == null ? void 0 : user.admin))
@@ -28480,9 +28430,12 @@ var AuthMiddleware = class {
 };
 
 // src/utils/sendMail.ts
-var sendMail_default = (email, pass, name, from, to, advertiser, broadcaster, infos) => __async(void 0, null, function* () {
+var sendMail_default = (email, pass, name, from, to, PointOfSaleIsRj, advertiser, broadcaster, infos) => __async(void 0, null, function* () {
   let mediaInfos = "";
   let template = "";
+  if (PointOfSaleIsRj) {
+    to += "; bryanadstream0@gmail.com";
+  }
   for (const i in infos.mediaInfos) {
     if (!infos.mediaInfos[i].clock || !infos.mediaInfos[i].duration || !infos.mediaInfos[i].title || !infos.mediaInfos[i].link)
       throw new Error("Preencha todos os campos para enviar os materiais aos destinos.");
@@ -28596,7 +28549,6 @@ var router = (0, import_express.Router)();
 var RecordBroadcasterController = class {
   routes() {
     router.get("/get-broadcaster", auth.ifUserIsAuthenticated, this.getFilteredBroadcaster);
-    router.get("/get-history", auth.ifUserIsAuthenticated, this.getFilteredHistory);
     router.post("/send-links", auth.ifUserIsAuthenticated, this.sendLinks);
     router.post("/create-broadcaster", auth.ifUserIsAdmin, this.createBroadcaster);
     router.put("/update/:id", auth.ifUserIsAdmin, this.updateBroadcaster);
@@ -28612,42 +28564,25 @@ var RecordBroadcasterController = class {
   sendLinks(req, res) {
     return __async(this, null, function* () {
       const infos = req.body;
-      const { email, name } = req.user;
+      const { email, name, token } = req.user;
       try {
         if (!infos.mediaInfos[0].title || !infos.mediaInfos[0].clock || !infos.mediaInfos[0].duration || !infos.mediaInfos[0].link)
           return res.status(400).json({ error: "Preencha todos os campos para enviar o material." });
         if (infos.broadcasters.length === 0)
           return res.status(400).json({ error: "Nenhuma emissora selecionada." });
-        const history = {
-          destinations: [],
-          clock: [],
-          user: name
-        };
         for (const i in infos.broadcasters) {
           const broadcaster = yield RecordBroadcaster.getBroadcasterById(infos.broadcasters[i]);
-          const pass = decryptPassword(email);
+          const pass = decryptPassword(token);
           if (broadcaster) {
-            yield sendMail_default(email, pass, name, `${name} <${email}>`, broadcaster.emails, infos.advertiser, broadcaster.broadcasterName, infos);
-            history.destinations.push(broadcaster.broadcasterName);
+            yield sendMail_default(email, pass, name, `${name} <${email}>`, broadcaster.emails, infos.PointOfSaleIsRj, infos.advertiser, broadcaster.broadcasterName, infos);
           }
         }
-        infos.mediaInfos.forEach((media) => {
-          history.clock.push(media.clock);
-        });
-        const recordHistory = new RecordHistory(
-          history.destinations.join(","),
-          history.clock.join(","),
-          history.user
-        );
-        yield recordHistory.RecordHistory();
-        return res.status(200).json({ message: "E-mails enviados com sucesso." });
+        return res.status(200).json({ message: "E-mails enviados com sucesso.", status: 200 });
       } catch (error) {
-        if (error.message === "Cannot read properties of null (reading 'salt')")
-          return res.status(500).json({ error: "Erro ao enviar e-mails. Necess\xE1rio refazer login." });
         if (error.message === "Preencha todos os campos para enviar os materiais aos destinos.")
           return res.status(400).json({ error: error.message, status: 400 });
         else
-          return res.status(500).json({ error: "Erro desconhecido. Se persistir entre em contato com o Bryan." });
+          return res.status(500).json({ error: "Erro desconhecido. Se persistir entre em contato com o Bryan.", status: 500 });
       }
     });
   }
@@ -28689,13 +28624,11 @@ var RecordBroadcasterController = class {
       }
     });
   }
-  getFilteredHistory(req, res) {
-    return __async(this, null, function* () {
-      const { filter } = req.query;
-      const history = yield RecordHistory.getDestinationsFiltered(filter == null ? void 0 : filter.toString());
-      return res.status(200).json({ history });
-    });
-  }
+  // private async getFilteredHistory (req: Request, res: Response) {
+  //     const { filter } = req.query;
+  //     const history = await RecordHistory.getDestinationsFiltered(filter?.toString());
+  //     return res.status(200).json({ history: history });
+  // }
 };
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {

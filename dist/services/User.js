@@ -79,6 +79,16 @@ var User = class {
       });
     });
   }
+  static getUserById(id) {
+    return __async(this, null, function* () {
+      const user = yield prisma.user.findUnique({
+        where: {
+          id
+        }
+      });
+      return user;
+    });
+  }
   createUser() {
     return __async(this, null, function* () {
       const nameValidation = UserValidations.nameValidation(this.name);
