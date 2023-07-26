@@ -28761,29 +28761,10 @@ var routes_default = router3;
 
 // src/app.ts
 var import_cors = __toESM(require("cors"));
-var import_client3 = require("@prisma/client");
 var app = (0, import_express4.default)();
-var prisma3 = new import_client3.PrismaClient();
-function createFirstAdminUser() {
-  return __async(this, null, function* () {
-    try {
-      yield prisma3.user.create({
-        data: {
-          name: "BRYAN ROCHA",
-          email: "bryan.rocha@extremereach.com",
-          admin: true
-        }
-      });
-      console.log("Usuario admin criado com sucesso.");
-    } catch (error) {
-      console.log(error);
-    }
-  });
-}
 app.use((0, import_cors.default)());
 app.use(import_express4.default.json());
 app.use(routes_default);
-createFirstAdminUser();
 var app_default = app;
 
 // src/server.ts
