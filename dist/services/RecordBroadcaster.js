@@ -28110,6 +28110,8 @@ var RecordBroadcaster = class {
         throw new Error("Invalid Fields");
     });
   }
+  // public async deleteBroadcaster (id: number) {
+  // }
 };
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {

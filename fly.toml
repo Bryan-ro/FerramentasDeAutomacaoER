@@ -1,9 +1,9 @@
-# fly.toml app configuration file generated for ermailer on 2023-06-23T16:24:53-03:00
+# fly.toml app configuration file generated for falling-brook-544 on 2023-07-26T13:50:11-03:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = "ermailer"
+app = "falling-brook-544"
 primary_region = "gru"
 
 [[mounts]]

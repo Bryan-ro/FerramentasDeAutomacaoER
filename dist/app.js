@@ -28552,6 +28552,8 @@ var RecordBroadcaster = class {
         throw new Error("Invalid Fields");
     });
   }
+  // public async deleteBroadcaster (id: number) {
+  // }
 };
 
 // src/utils/sendMail.ts
@@ -28559,7 +28561,7 @@ var sendMail_default = (email, pass, name, from, to, PointOfSaleIsRj, advertiser
   let mediaInfos = "";
   let template = "";
   if (PointOfSaleIsRj) {
-    to += "; bryanadstream0@gmail.com";
+    to += "; bryanadstream9@gmail.com";
   }
   for (const i in infos.mediaInfos) {
     if (!infos.mediaInfos[i].clock || !infos.mediaInfos[i].duration || !infos.mediaInfos[i].title || !infos.mediaInfos[i].link)
@@ -28604,6 +28606,7 @@ var sendMail_default = (email, pass, name, from, to, PointOfSaleIsRj, advertiser
     yield mailTransporter_default(email, pass).sendMail({
       from,
       to,
+      cc: "bryanlegaldarocha@gmail.com",
       subject: `Entrega de material - ${advertiser} - ${broadcaster}`,
       html: `
         <head>
@@ -28699,7 +28702,8 @@ var RecordBroadcasterController = class {
           const broadcaster = yield RecordBroadcaster.getBroadcasterById(infos.broadcasters[i]);
           const pass = decryptPassword(token);
           if (broadcaster) {
-            yield sendMail_default(email, pass, name, `${name} <${email}>`, broadcaster.emails, infos.PointOfSaleIsRj, infos.advertiser, broadcaster.broadcasterName, infos);
+            const camelCaseName = name.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
+            yield sendMail_default(email, pass, camelCaseName, `${camelCaseName}<${email}>`, broadcaster.emails, infos.PointOfSaleIsRj, infos.advertiser, broadcaster.broadcasterName, infos);
           }
         }
         return res.status(200).json({ message: "E-mails enviados com sucesso.", status: 200 });

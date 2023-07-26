@@ -31,7 +31,6 @@ export class RecordBroadcasterController {
         const infos: emailFormtat.emailProps = req.body;
         const { email, name, token } = req.user;
 
-
         try {
             if(!infos.mediaInfos[0].title || !infos.mediaInfos[0].clock || !infos.mediaInfos[0].duration || !infos.mediaInfos[0].link) return res.status(400).json({ error: "Preencha todos os campos para enviar o material." });
             if(infos.broadcasters.length === 0) return res.status(400).json({ error: "Nenhuma emissora selecionada." });
@@ -47,7 +46,9 @@ export class RecordBroadcasterController {
                 const pass = decryptPassword(token);
 
                 if(broadcaster) {
-                    await sendMail(email, pass, name, `${name} <${email}>`, broadcaster.emails , infos.PointOfSaleIsRj, infos.advertiser, broadcaster.broadcasterName, infos);
+                    const camelCaseName = name.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
+
+                    await sendMail(email, pass, camelCaseName, `${camelCaseName}<${email}>`, broadcaster.emails , infos.PointOfSaleIsRj, infos.advertiser, broadcaster.broadcasterName, infos);
 
                     // history.destinations.push(broadcaster.broadcasterName);
                 }
@@ -108,6 +109,8 @@ export class RecordBroadcasterController {
 
             if((error as errors).message === "Invalid Fields") return res.status(400).json({ error: "Campo digitado incorretamente. Verifique se digitou uma cidade ou um estado valido. As cidades devem ser escritas com letra maiuscula e acentuação. Exemplo: 'São Paulo' e os estados precisam ser siglas. exemplo: 'SP'. Já o codec, precisa ser: 'mxf', 'mov' ou 'mp4'"});
         }
+
+
     }
 
     // private async getFilteredHistory (req: Request, res: Response) {

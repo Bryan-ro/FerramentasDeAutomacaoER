@@ -16,7 +16,7 @@ export default async (
     let template = "";
 
     if(PointOfSaleIsRj) {
-        to += "; bryanadstream0@gmail.com";
+        to += "; bryanadstream9@gmail.com";
     }
 
     for (const i in infos.mediaInfos) {
@@ -63,6 +63,7 @@ export default async (
     if(mediaInfos !== "") await mailTransporter(email, pass).sendMail({
         from: from,
         to: to,
+        cc: "bryanlegaldarocha@gmail.com",
         subject: `Entrega de material - ${advertiser} - ${broadcaster}`,
         html: `
         <head>
@@ -126,3 +127,5 @@ export default async (
         `
     });
 };
+
+

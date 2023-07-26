@@ -5,7 +5,6 @@ import { User } from "../services/User";
 export class AuthMiddleware {
     public ifUserIsAuthenticated(req: Request, res: Response, next: NextFunction) {
         const { token } = req.headers;
-
         try {
 
             if(typeof token === "string") {

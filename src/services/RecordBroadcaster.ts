@@ -79,4 +79,11 @@ export class RecordBroadcaster {
             });
         } else throw new Error("Invalid Fields");
     }
+
+    // public async deleteBroadcaster (id: number) {
+
+    // }
 }
+
+
+
