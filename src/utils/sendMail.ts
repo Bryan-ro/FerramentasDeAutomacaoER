@@ -49,7 +49,7 @@ export default async (
             Olá, tudo bem?
             <br>
                 <br>
-            Segue abaixo a entrega do material da anunciante ${advertiser}:
+            Segue abaixo a entrega do material do anunciante ${advertiser}:
             <br>
             <br>
             ${mediaInfos}
