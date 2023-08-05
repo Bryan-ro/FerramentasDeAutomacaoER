@@ -22,7 +22,16 @@ model BroadcastersReocord {
   city            String
   state           String
   codec           String
-  emails          String
+  emails          String @db.LongText
+}
+
+model BroadcastersBand {
+  id              Int    @id @default(autoincrement())
+  broadcasterName String @unique
+  city            String
+  state           String
+  codec           String
+  emails          String @db.LongText
 }
 
 model recordHistory {

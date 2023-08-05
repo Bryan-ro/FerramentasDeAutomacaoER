@@ -28436,7 +28436,7 @@ var sendMail_default = (email, pass, name, from, to, PointOfSaleIsRj, advertiser
   let mediaInfos = "";
   let template = "";
   if (PointOfSaleIsRj) {
-    to += "; bryanadstream9@gmail.com";
+    to += "; BCampos@recordtvrio.com.br";
   }
   for (const i in infos.mediaInfos) {
     if (!infos.mediaInfos[i].clock || !infos.mediaInfos[i].duration || !infos.mediaInfos[i].title || !infos.mediaInfos[i].link)
@@ -28481,7 +28481,7 @@ var sendMail_default = (email, pass, name, from, to, PointOfSaleIsRj, advertiser
     yield mailTransporter_default(email, pass).sendMail({
       from,
       to,
-      cc: "bryanlegaldarocha@gmail.com",
+      cc: "bryangomesrocha@gmail.com",
       subject: `Entrega de material - ${advertiser} - ${broadcaster}`,
       html: `
         <head>

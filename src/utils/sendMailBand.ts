@@ -6,22 +6,26 @@ export default async (
     name: string,
     from: string,
     to: string,
-    PointOfSaleIsRj: boolean,
+    codec: string,
     advertiser: string,
     broadcaster: string,
-    infos: emailFormat.emailProps
+    infos: emailFormat.emailPropsBand
 ) => {
 
     let mediaInfos = "";
     let template = "";
 
-    if(PointOfSaleIsRj) {
-        to += "; BCampos@recordtvrio.com.br";
-    }
-
     for (const i in infos.mediaInfos) {
-        if(!infos.mediaInfos[i].clock || !infos.mediaInfos[i].duration || !infos.mediaInfos[i].title || !infos.mediaInfos[i].link)
+        if(!infos.mediaInfos[i].clock || !infos.mediaInfos[i].duration || !infos.mediaInfos[i].title)
             throw new Error("Preencha todos os campos para enviar os materiais aos destinos.");
+
+        let correctCodecLink;
+
+
+        if(codec === "mxf") correctCodecLink = infos.mediaInfos[i].linkMxf;
+        if(codec === "mov") correctCodecLink = infos.mediaInfos[i].linkMov;
+        if(codec === "mp4") correctCodecLink = infos.mediaInfos[i].linkMp4;
+
         mediaInfos += `
         <table>
             <tr class="tittle">
@@ -36,7 +40,7 @@ export default async (
                 <td>${infos.mediaInfos[i].clock}</td>
                 <td>${infos.mediaInfos[i].duration}</td>
                 <td>${infos.mediaInfos[i].title}</td>
-                <td><a href="${infos.mediaInfos[i].link}">DOWNLOAD</a></td>
+                <td><a href="${correctCodecLink}">DOWNLOAD</a></td>
             </tr>
         </table>
         <br>

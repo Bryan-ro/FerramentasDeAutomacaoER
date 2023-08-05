@@ -1,33 +1,84 @@
-import mailTransporter from "./mailTransporter";
+"use strict";
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+var __async = (__this, __arguments, generator) => {
+  return new Promise((resolve, reject) => {
+    var fulfilled = (value) => {
+      try {
+        step(generator.next(value));
+      } catch (e) {
+        reject(e);
+      }
+    };
+    var rejected = (value) => {
+      try {
+        step(generator.throw(value));
+      } catch (e) {
+        reject(e);
+      }
+    };
+    var step = (x) => x.done ? resolve(x.value) : Promise.resolve(x.value).then(fulfilled, rejected);
+    step((generator = generator.apply(__this, __arguments)).next());
+  });
+};
 
-export default async (
-    email: string,
-    pass: string,
-    name: string,
-    from: string,
-    to: string,
-    PointOfSaleIsRj: boolean,
-    advertiser: string,
-    broadcaster: string,
-    infos: emailFormat.emailProps
-) => {
+// src/utils/sendMailBand.ts
+var sendMailBand_exports = {};
+__export(sendMailBand_exports, {
+  default: () => sendMailBand_default
+});
+module.exports = __toCommonJS(sendMailBand_exports);
 
-    let mediaInfos = "";
-    let template = "";
+// src/utils/mailTransporter.ts
+var import_nodemailer = require("nodemailer");
+var mailTransporter_default = (email, pass) => (0, import_nodemailer.createTransport)({
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false,
+  auth: {
+    user: email,
+    pass
+  },
+  tls: {
+    rejectUnauthorized: false
+  }
+});
 
-    if(PointOfSaleIsRj) {
-        to += "; BCampos@recordtvrio.com.br";
-    }
-
-    for (const i in infos.mediaInfos) {
-        if(!infos.mediaInfos[i].clock || !infos.mediaInfos[i].duration || !infos.mediaInfos[i].title || !infos.mediaInfos[i].link)
-            throw new Error("Preencha todos os campos para enviar os materiais aos destinos.");
-        mediaInfos += `
+// src/utils/sendMailBand.ts
+var sendMailBand_default = (email, pass, name, from, to, codec, advertiser, broadcaster, infos) => __async(void 0, null, function* () {
+  let mediaInfos = "";
+  let template = "";
+  for (const i in infos.mediaInfos) {
+    if (!infos.mediaInfos[i].clock || !infos.mediaInfos[i].duration || !infos.mediaInfos[i].title)
+      throw new Error("Preencha todos os campos para enviar os materiais aos destinos.");
+    let correctCodecLink;
+    if (codec === "mxf")
+      correctCodecLink = infos.mediaInfos[i].linkMxf;
+    if (codec === "mov")
+      correctCodecLink = infos.mediaInfos[i].linkMov;
+    if (codec === "mp4")
+      correctCodecLink = infos.mediaInfos[i].linkMp4;
+    mediaInfos += `
         <table>
             <tr class="tittle">
                 <td>Destino</td>
                 <td>Clock Number</td>
-                <td>Duração</td>
+                <td>Dura\xE7\xE3o</td>
                 <td>Titulo</td>
                 <td>Link</td>
             </tr>
@@ -36,17 +87,16 @@ export default async (
                 <td>${infos.mediaInfos[i].clock}</td>
                 <td>${infos.mediaInfos[i].duration}</td>
                 <td>${infos.mediaInfos[i].title}</td>
-                <td><a href="${infos.mediaInfos[i].link}">DOWNLOAD</a></td>
+                <td><a href="${correctCodecLink}">DOWNLOAD</a></td>
             </tr>
         </table>
         <br>
         <br>
         `;
-    }
-
-    if(mediaInfos !== "") {
-        template = `
-            Olá, tudo bem?
+  }
+  if (mediaInfos !== "") {
+    template = `
+            Ol\xE1, tudo bem?
             <br>
                 <br>
             Segue abaixo a entrega do material do anunciante ${advertiser}:
@@ -58,14 +108,14 @@ export default async (
             <br>
             <br>
             `;
-    }
-
-    if(mediaInfos !== "") await mailTransporter(email, pass).sendMail({
-        from: from,
-        to: to,
-        cc: "bryangomesrocha@gmail.com",
-        subject: `Entrega de material - ${advertiser} - ${broadcaster}`,
-        html: `
+  }
+  if (mediaInfos !== "")
+    yield mailTransporter_default(email, pass).sendMail({
+      from,
+      to,
+      cc: "bryangomesrocha@gmail.com",
+      subject: `Entrega de material - ${advertiser} - ${broadcaster}`,
+      html: `
         <head>
             <style>
     * {
@@ -126,6 +176,4 @@ export default async (
 
         `
     });
-};
-
-
+});

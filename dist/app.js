@@ -206,7 +206,7 @@ __export(app_exports, {
   default: () => app_default
 });
 module.exports = __toCommonJS(app_exports);
-var import_express4 = __toESM(require("express"));
+var import_express5 = __toESM(require("express"));
 
 // src/controllers/userController.ts
 var import_express = require("express");
@@ -339,12 +339,12 @@ var AuthMiddleware = class {
     const { token } = req.headers;
     try {
       if (typeof token === "string") {
-        const auth3 = verifyJwt(token);
-        if (auth3) {
+        const auth4 = verifyJwt(token);
+        if (auth4) {
           req.user = {
-            email: auth3.email,
-            name: auth3.name,
-            token: auth3.token
+            email: auth4.email,
+            name: auth4.name,
+            token: auth4.token
           };
           return next();
         }
@@ -359,13 +359,13 @@ var AuthMiddleware = class {
       const { token } = req.headers;
       try {
         if (typeof token === "string") {
-          const auth3 = verifyJwt(token);
-          const user = yield User.getUserByEmail(auth3.email);
+          const auth4 = verifyJwt(token);
+          const user = yield User.getUserByEmail(auth4.email);
           if (user == null ? void 0 : user.admin) {
             req.user = {
-              email: auth3.email,
-              name: auth3.name,
-              token: auth3.token
+              email: auth4.email,
+              name: auth4.name,
+              token: auth4.token
             };
             return next();
           } else if (!(user == null ? void 0 : user.admin))
@@ -415,9 +415,9 @@ var UserController = class {
       try {
         const user = yield User.getUserByEmail(email);
         if (user) {
-          const auth3 = yield verifyEmail(user.name, user.email, pass);
-          if (auth3)
-            return res.status(200).json({ token: auth3, user: user.email, name: user.name, admin: user.admin, redirected: "Home page", status: 200 });
+          const auth4 = yield verifyEmail(user.name, user.email, pass);
+          if (auth4)
+            return res.status(200).json({ token: auth4, user: user.email, name: user.name, admin: user.admin, redirected: "Home page", status: 200 });
         } else {
           return res.status(401).json({ message: "Usu\xE1rio ou senha inv\xE1lido", status: 401 });
         }
@@ -28561,7 +28561,7 @@ var sendMail_default = (email, pass, name, from, to, PointOfSaleIsRj, advertiser
   let mediaInfos = "";
   let template = "";
   if (PointOfSaleIsRj) {
-    to += "; bryanadstream9@gmail.com";
+    to += "; BCampos@recordtvrio.com.br";
   }
   for (const i in infos.mediaInfos) {
     if (!infos.mediaInfos[i].clock || !infos.mediaInfos[i].duration || !infos.mediaInfos[i].title || !infos.mediaInfos[i].link)
@@ -28606,7 +28606,7 @@ var sendMail_default = (email, pass, name, from, to, PointOfSaleIsRj, advertiser
     yield mailTransporter_default(email, pass).sendMail({
       from,
       to,
-      cc: "bryanlegaldarocha@gmail.com",
+      cc: "bryangomesrocha@gmail.com",
       subject: `Entrega de material - ${advertiser} - ${broadcaster}`,
       html: `
         <head>
@@ -28760,19 +28760,344 @@ var RecordBroadcasterController = class {
   // }
 };
 
-// src/routes/routes.ts
+// src/controllers/bandBroadCasterController.ts
 var import_express3 = require("express");
+
+// src/services/BandBroadcaster.ts
+var import_client3 = require("@prisma/client");
+var prisma3 = new import_client3.PrismaClient();
+var BandBroadcaster = class {
+  constructor(broadcasterName, city, state, codec, emails) {
+    this.broadcasterName = broadcasterName;
+    this.city = city;
+    this.state = state;
+    this.codec = codec;
+    this.emails = emails;
+  }
+  static getBroadcasterById(id) {
+    return __async(this, null, function* () {
+      return yield prisma3.broadcastersBand.findUnique({
+        where: {
+          id
+        }
+      });
+    });
+  }
+  static getBroadcasterFiltered(filter) {
+    return __async(this, null, function* () {
+      return yield prisma3.broadcastersBand.findMany({
+        where: {
+          OR: [
+            {
+              broadcasterName: {
+                contains: filter
+              }
+            },
+            {
+              city: {
+                contains: filter
+              }
+            },
+            {
+              state: {
+                contains: filter
+              }
+            },
+            {
+              emails: {
+                contains: filter
+              }
+            }
+          ]
+        }
+      });
+    });
+  }
+  createBroadcaster() {
+    return __async(this, null, function* () {
+      if (broadcastersValidations.city(this.city) && broadcastersValidations.state(this.state) && broadcastersValidations.codec(this.codec)) {
+        yield prisma3.broadcastersBand.create({
+          data: {
+            broadcasterName: this.broadcasterName,
+            city: this.city,
+            state: this.state,
+            codec: this.codec,
+            emails: this.emails
+          }
+        });
+      } else
+        throw new Error("Invalid Fields");
+    });
+  }
+  updateBroadcaster(id) {
+    return __async(this, null, function* () {
+      if (broadcastersValidations.city(this.city) && broadcastersValidations.state(this.state) && broadcastersValidations.codec(this.codec)) {
+        yield prisma3.broadcastersBand.update({
+          data: {
+            broadcasterName: this.broadcasterName,
+            city: this.city,
+            state: this.state,
+            codec: this.codec,
+            emails: this.emails
+          },
+          where: {
+            id
+          }
+        });
+      } else
+        throw new Error("Invalid Fields");
+    });
+  }
+  // public async deleteBroadcaster (id: number) {
+  // }
+};
+
+// src/utils/sendMailBand.ts
+var sendMailBand_default = (email, pass, name, from, to, codec, advertiser, broadcaster, infos) => __async(void 0, null, function* () {
+  let mediaInfos = "";
+  let template = "";
+  for (const i in infos.mediaInfos) {
+    if (!infos.mediaInfos[i].clock || !infos.mediaInfos[i].duration || !infos.mediaInfos[i].title)
+      throw new Error("Preencha todos os campos para enviar os materiais aos destinos.");
+    let correctCodecLink;
+    if (codec === "mxf")
+      correctCodecLink = infos.mediaInfos[i].linkMxf;
+    if (codec === "mov")
+      correctCodecLink = infos.mediaInfos[i].linkMov;
+    if (codec === "mp4")
+      correctCodecLink = infos.mediaInfos[i].linkMp4;
+    mediaInfos += `
+        <table>
+            <tr class="tittle">
+                <td>Destino</td>
+                <td>Clock Number</td>
+                <td>Dura\xE7\xE3o</td>
+                <td>Titulo</td>
+                <td>Link</td>
+            </tr>
+            <tr class="infos">
+                <td>${broadcaster}</td>
+                <td>${infos.mediaInfos[i].clock}</td>
+                <td>${infos.mediaInfos[i].duration}</td>
+                <td>${infos.mediaInfos[i].title}</td>
+                <td><a href="${correctCodecLink}">DOWNLOAD</a></td>
+            </tr>
+        </table>
+        <br>
+        <br>
+        `;
+  }
+  if (mediaInfos !== "") {
+    template = `
+            Ol\xE1, tudo bem?
+            <br>
+                <br>
+            Segue abaixo a entrega do material do anunciante ${advertiser}:
+            <br>
+            <br>
+            ${mediaInfos}
+
+            Favor confirmar o recebimento.
+            <br>
+            <br>
+            `;
+  }
+  if (mediaInfos !== "")
+    yield mailTransporter_default(email, pass).sendMail({
+      from,
+      to,
+      cc: "bryangomesrocha@gmail.com",
+      subject: `Entrega de material - ${advertiser} - ${broadcaster}`,
+      html: `
+        <head>
+            <style>
+    * {
+        font-size: 14px;
+    }
+
+    body {
+        background-color: black;
+    }
+
+    table {
+        display: flex;
+        flex-wrap: wrap;
+        font-family: sans-serif;
+        text-align: center;
+    }
+
+    td, table {
+        border-collapse: collapse;
+        width: 750px;
+    }
+
+    td {
+        border: 1px solid white;
+    }
+
+    .tittle {
+        height: 20px;
+        background-color: #77aadd;
+        font-weight: bold;
+    }
+
+    .infos {
+        background-color: #cccccc;
+    }
+
+    a {
+        text-decoration: none;
+        color: #2074c9;
+    }
+
+</style>
+  </head>
+  <body>
+  ${template}
+    <br>
+    <br>
+    <div style="color: rgb(34, 34, 34); font-family: Arial, Helvetica, sans-serif; font-size: small; background-color: rgb(255, 255, 255);">Abs,</div>
+<div style="color: rgb(34, 34, 34); font-family: Arial, Helvetica, sans-serif; font-size: small; background-color: rgb(255, 255, 255);">
+<p dir="ltr" style="color: rgb(34, 34, 34); line-height: 1.38; margin-top: 0pt; margin-bottom: 0pt;"><span style="font-size: 11pt; font-family: Arial; vertical-align: baseline; white-space: pre-wrap;"><span style="border-style: none; display: inline-block; overflow: hidden; width: 100px; height: 32px;"><img src="https://lh6.googleusercontent.com/wCUnK4Awh1DmZwgnhLdrhx8lNsAkdLwvwxcm0M2SLyZSvtE98mfAzKSI1UZu2GM1Ue6oyx2HVFbNB2az4Q8ZWg5C-2Gn6A1IV3sqXWnxQKeNLYnH10oxeyrtXw9VAa3Utg571x4n" alt="Extreme Reach" width="100" height="32" data-bit="iit"></span></span></p>
+<div style="margin: 0px; padding: 0px; border-width: 0px; font-stretch: inherit; font-size: 12pt; line-height: inherit; font-family: Calibri, Arial, Helvetica, sans-serif; vertical-align: baseline; color: rgb(0, 0, 0);"><span style="font-size: 9pt; font-family: Arial; color: rgb(16, 24, 32); font-weight: bold; vertical-align: baseline; white-space: pre-wrap;">${name}<br></span><span style="font-size: 9pt; font-family: Arial; color: rgb(16, 24, 32); vertical-align: baseline; white-space: pre-wrap;"><strong>Traffic Assistant</strong><br></span><span style="font-size: 9pt; font-family: Arial; color: rgb(16, 24, 32); vertical-align: baseline; white-space: pre-wrap;"><br></span><span style="font-size: 9pt; font-family: Arial; color: rgb(16, 24, 32); font-weight: bold; vertical-align: baseline; white-space: pre-wrap;">M:</span><span style="font-size: 9pt; font-family: Arial; color: rgb(16, 24, 32); vertical-align: baseline; white-space: pre-wrap;"> </span><span style="color: rgb(16, 24, 32); font-family: Arial; font-size: 12px; white-space: pre-wrap;"> 55 11 98892-5295</span></div>
+<div style="margin: 0px; padding: 0px; border-width: 0px; font-stretch: inherit; font-size: 14px; line-height: inherit; vertical-align: baseline; color: rgb(0, 0, 0);"><a style="color: rgb(17, 85, 204); font-family: Arial; font-size: 9pt; white-space: pre-wrap;" href="mailto:${email}" target="_blank" rel="noopener">${email}</a></div>
+<p dir="ltr" style="color: rgb(34, 34, 34); line-height: 1.62; margin-top: 0pt; margin-bottom: 0pt; padding: 15pt 0pt 0pt;"><span style="font-size: 9pt; font-family: Arial; color: rgb(16, 24, 32); vertical-align: baseline; white-space: pre-wrap;">Adstream Brasil (an Extreme Reach company)</span></p>
+<div>&nbsp;</div>
+<div><img class="CToWUd a6T" style="cursor: pointer; outline-width: 0px;" tabindex="0" src="https://lh3.googleusercontent.com/Ujl148-8lEgohZsNH_Fb18WEhRRtQL4N6zhiUI8P8iOqfrf7XuzM5gGaPuZVffa5HLS-sH25siPnW4n_h3JK0HGbBamp-8wLfG5GjZJVAJHHQNS4OByP09aesSTz3L8KTg_oMgUVGUk4UH9JHGQqevY" width="420" height="138" data-bit="iit"></div>
+
+  </body>
+
+        `
+    });
+});
+
+// src/controllers/bandBroadCasterController.ts
+var auth3 = new AuthMiddleware();
 var router3 = (0, import_express3.Router)();
+var BandBroadcasterController = class {
+  routes() {
+    router3.get("/get-broadcaster", auth3.ifUserIsAuthenticated, this.getFilteredBroadcaster);
+    router3.post("/send-links", auth3.ifUserIsAuthenticated, this.sendLinks);
+    router3.post("/create-broadcaster", auth3.ifUserIsAdmin, this.createBroadcaster);
+    router3.put("/update/:id", auth3.ifUserIsAdmin, this.updateBroadcaster);
+    return router3;
+  }
+  getFilteredBroadcaster(req, res) {
+    return __async(this, null, function* () {
+      const { filter } = req.query;
+      const broadcaster = yield BandBroadcaster.getBroadcasterFiltered(filter == null ? void 0 : filter.toString());
+      return res.status(200).json({ broadcasters: broadcaster });
+    });
+  }
+  sendLinks(req, res) {
+    return __async(this, null, function* () {
+      const infos = req.body;
+      const { email, name, token } = req.user;
+      try {
+        if (!infos.mediaInfos[0].title || !infos.mediaInfos[0].clock || !infos.mediaInfos[0].duration)
+          return res.status(400).json({ error: "Preencha todos os campos para enviar o material." });
+        if (infos.broadcasters.length === 0)
+          return res.status(400).json({ error: "Nenhuma emissora selecionada." });
+        let errorFound = false;
+        for (const i in infos.broadcasters) {
+          const broadcaster = yield BandBroadcaster.getBroadcasterById(infos.broadcasters[i]);
+          if (!broadcaster)
+            return res.status(404).json({ error: "Uma emissora selecionada \xE9 invalida ou foi excluida.", status: 404 });
+          infos.mediaInfos.forEach((mediaInfo) => {
+            if (!mediaInfo.linkMxf && (broadcaster == null ? void 0 : broadcaster.codec) === "mxf" && !errorFound) {
+              errorFound = true;
+              res.status(400).json({ error: "Um dos destinos selecionados precisa de links em mxf. Por favor preencha o campo 'Link mxf'", status: 400 });
+            }
+            if (!mediaInfo.linkMov && (broadcaster == null ? void 0 : broadcaster.codec) === "mov" && !errorFound) {
+              errorFound = true;
+              res.status(400).json({ error: "Um dos destinos selecionados precisa de links em mov. Por favor preencha o campo 'Link mov'", status: 400 });
+            }
+            if (!mediaInfo.linkMp4 && (broadcaster == null ? void 0 : broadcaster.codec) === "mp4" && !errorFound) {
+              errorFound = true;
+              res.status(400).json({ error: "Um dos destinos selecionados precisa de links em mp4. Por favor preencha o campo 'Link mp4'", status: 400 });
+            }
+          });
+          if (errorFound)
+            return;
+        }
+        for (const i in infos.broadcasters) {
+          const broadcaster = yield BandBroadcaster.getBroadcasterById(infos.broadcasters[i]);
+          const pass = decryptPassword(token);
+          if (broadcaster) {
+            const camelCaseName = name.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
+            yield sendMailBand_default(email, pass, camelCaseName, `${camelCaseName}<${email}>`, broadcaster.emails, broadcaster.codec, infos.advertiser, broadcaster.broadcasterName, infos);
+          }
+        }
+        return res.status(200).json({ message: "E-mails enviados com sucesso.", status: 200 });
+      } catch (error) {
+        console.log(error);
+        if (error.message === "Preencha todos os campos para enviar os materiais aos destinos.")
+          return res.status(400).json({ error: error.message, status: 400 });
+        else
+          return res.status(500).json({ error: "Erro desconhecido. Se persistir entre em contato com o Bryan.", status: 500 });
+      }
+    });
+  }
+  createBroadcaster(req, res) {
+    return __async(this, null, function* () {
+      const { broadcasterName, city, state, codec, emails } = req.body;
+      try {
+        const broadcasters = new BandBroadcaster(broadcasterName, city, state, codec, emails);
+        yield broadcasters.createBroadcaster();
+        return res.status(201).json({ message: "Emissora cadastrada com sucesso.", broadcaster: broadcasterName, status: 201 });
+      } catch (error) {
+        if (!broadcasterName || !state || !codec || !emails)
+          return res.status(400).json({ error: "Campo obrigat\xF3rio n\xE3o informado.", status: 400 });
+        else if (error.code === "P2002")
+          return res.status(409).json({ error: "Emissora j\xE1 cadastrada anteriormente.", status: 409 });
+        else if (error.message === "Invalid Fields")
+          return res.status(400).json({ error: "Campo digitado incorretamente. Verifique se digitou uma cidade ou um estado valido. As cidades devem ser escritas com letra maiuscula e acentua\xE7\xE3o. Exemplo: 'S\xE3o Paulo' e os estados precisam ser siglas. exemplo: 'SP'. J\xE1 o codec, precisa ser: 'mxf', 'mov' ou 'mp4'", status: 400 });
+        else
+          return res.status(500).json({ error: "erro desconhecido.", status: 500 });
+      }
+    });
+  }
+  updateBroadcaster(req, res) {
+    return __async(this, null, function* () {
+      const id = req.params.id;
+      const { broadcasterName, city, state, codec, emails } = req.body;
+      try {
+        const broadcaster = yield BandBroadcaster.getBroadcasterById(Number(id));
+        const updateBroadcaster = new BandBroadcaster(broadcasterName != null ? broadcasterName : broadcaster == null ? void 0 : broadcaster.broadcasterName, city != null ? city : broadcaster == null ? void 0 : broadcaster.city, state != null ? state : broadcaster == null ? void 0 : broadcaster.state, codec != null ? codec : broadcaster == null ? void 0 : broadcaster.codec, emails != null ? emails : broadcaster == null ? void 0 : broadcaster.emails);
+        yield updateBroadcaster.updateBroadcaster(Number(id));
+        return res.status(200).json({ message: "Emissora atualizada com sucesso." });
+      } catch (error) {
+        if (!id)
+          return res.status(400).json({ error: "Id da emissora n\xE3o informado." });
+        if (error.code === "P2025")
+          return res.status(400).json({ error: "Emissora inexistente." });
+        if (error.message === "Invalid Fields")
+          return res.status(400).json({ error: "Campo digitado incorretamente. Verifique se digitou uma cidade ou um estado valido. As cidades devem ser escritas com letra maiuscula e acentua\xE7\xE3o. Exemplo: 'S\xE3o Paulo' e os estados precisam ser siglas. exemplo: 'SP'. J\xE1 o codec, precisa ser: 'mxf', 'mov' ou 'mp4'" });
+      }
+    });
+  }
+  // private async getFilteredHistory (req: Request, res: Response) {
+  //     const { filter } = req.query;
+  //     const history = await RecordHistory.getDestinationsFiltered(filter?.toString());
+  //     return res.status(200).json({ history: history });
+  // }
+};
+
+// src/routes/routes.ts
+var import_express4 = require("express");
+var router4 = (0, import_express4.Router)();
 var users = new UserController();
 var recordController = new RecordBroadcasterController();
-router3.use("/users", users.routes());
-router3.use("/record", recordController.routes());
-var routes_default = router3;
+var bandController = new BandBroadcasterController();
+router4.use("/users", users.routes());
+router4.use("/record", recordController.routes());
+router4.use("/band", bandController.routes());
+var routes_default = router4;
 
 // src/app.ts
 var import_cors = __toESM(require("cors"));
-var app = (0, import_express4.default)();
+var app = (0, import_express5.default)();
 app.use((0, import_cors.default)());
-app.use(import_express4.default.json());
+app.use(import_express5.default.json());
 app.use(routes_default);
 var app_default = app;

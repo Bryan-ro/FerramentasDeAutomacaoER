@@ -28,7 +28,7 @@ export class RecordBroadcasterController {
     }
 
     private async sendLinks (req: Request, res: Response) {
-        const infos: emailFormtat.emailProps = req.body;
+        const infos: emailFormat.emailProps = req.body;
         const { email, name, token } = req.user;
 
         try {
