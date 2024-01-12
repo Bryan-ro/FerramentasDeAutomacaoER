@@ -2,6 +2,9 @@ import { Request, Response, Router } from "express";
 import { User } from "../services/User";
 import { verifyEmail } from "../security/verifyLogin";
 import { AuthMiddleware } from "../middlewares/authMiddleware";
+import dotenv from "dotenv";
+dotenv.config();
+
 const router = Router();
 const auth = new AuthMiddleware();
 
@@ -87,7 +90,7 @@ export class UserController {
             const userWillBeDeleted = await User.getUserById(Number(id));
 
             if(email === userWillBeDeleted?.email) return res.status(403).json({ error: "Você não pode deletar seu próprio usuário.", status: 403 });
-            if(userWillBeDeleted?.email === "bryan.rocha@extremereach.com") return res.status(403).json({ error: "Você não tem permissão para deletar o usuário 'Bryan Rocha'", status: 401 });
+            if(userWillBeDeleted?.email === process.env.MASTER_EMAIL) return res.status(403).json({ error: "Você não tem permissão para deletar o usuário 'Bryan Rocha'", status: 401 });
             else {
                 await User.deleteUser(Number(id));
                 return res.status(200).json({ message: "Usuário deletado", status: 200 });
