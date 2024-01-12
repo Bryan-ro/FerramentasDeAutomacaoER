@@ -1,5 +1,3 @@
-# Projeto XYZ - README
-
 ## Instalação de Dependências
 
 Certifique-se de ter o **Node** e o **NPM** instalados em sua máquina.
