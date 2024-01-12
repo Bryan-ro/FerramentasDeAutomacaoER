@@ -36,6 +36,7 @@ Os seguintes arquivos foram gerados pela CLI do **fly.io**. Se você estiver usa
 
 - **.dockerignore**
 - **Dockerfile**
+- **docker-entrypoint.js**
 - **fly.toml**
 
 Caso esteja utilizando o **fly.io**, consulte a documentação para criar uma conta, faça login usando a CLI e utilize o comando de deploy conforme as instruções fornecidas pela documentação do **fly.io**.
