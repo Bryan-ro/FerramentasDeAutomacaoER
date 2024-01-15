@@ -9,6 +9,7 @@ const router = Router();
 
 export class BandBroadcasterController {
     public routes () {
+        router.get("/getbyid/:id", auth.ifUserIsAuthenticated, this.getBroadcasterById);
         router.get("/get-broadcaster", auth.ifUserIsAuthenticated, this.getFilteredBroadcaster);
         router.post("/send-links", auth.ifUserIsAuthenticated, this.sendLinks);
         router.post("/create-broadcaster", auth.ifUserIsAdmin, this.createBroadcaster);
@@ -23,6 +24,14 @@ export class BandBroadcasterController {
         const broadcaster = await BandBroadcaster.getBroadcasterFiltered(filter?.toString());
 
         return res.status(200).json({ broadcasters: broadcaster });
+    }
+
+    private async getBroadcasterById(req: Request, res: Response) {
+        const id = req.params.id;
+
+        const broadcaster = await BandBroadcaster.getBroadcasterById(Number(id));
+
+        return res.status(200).json({ broadcaster });
     }
 
     private async sendLinks (req: Request, res: Response) {

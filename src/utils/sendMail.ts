@@ -63,7 +63,7 @@ export default async (
     if(mediaInfos !== "") await mailTransporter(email, pass).sendMail({
         from: from,
         to: to,
-        cc: "bryangomesrocha@gmail.com",
+        cc: "trafego@extremereach.com",
         subject: `Entrega de material - ${advertiser} - ${broadcaster}`,
         html: `
         <head>
