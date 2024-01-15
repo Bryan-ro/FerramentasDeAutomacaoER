@@ -43,4 +43,4 @@ Caso esteja utilizando o **fly.io**, consulte a documentação para criar uma co
 
 ## Banco de Dados
 
-Este projeto utiliza o serviço de banco de dados PlanetScale, com suporte para o Prisma. Para facilitar o deploy do banco de dados, você pode utilizar a CLI do Prisma. Certifique-se de configurar corretamente as variáveis de ambiente no arquivo **.env**.
+Neste projeto utilizei o serviço de banco de dados PlanetScale, com suporte para o Prisma. Para facilitar o deploy do banco de dados, você pode utilizar a CLI do Prisma. Certifique-se de configurar corretamente as variáveis de ambiente no arquivo **.env**.
