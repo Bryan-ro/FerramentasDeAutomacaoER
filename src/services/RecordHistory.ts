@@ -1,3 +1,9 @@
+/**
+ * Este código era usado para armazenar o histórico de envios para Record. Mas como o banco de dados utilizado é grátis, sem muito armazenamento,
+ * decidi não implementar essa feature. Mas não apaguei o código, para caso um dia tivesse um banco de dados maior.
+ */
+
+
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
