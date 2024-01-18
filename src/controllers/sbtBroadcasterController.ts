@@ -15,6 +15,7 @@ export class SbtBroadcasterController {
         router.post("/send-links", auth.ifUserIsAuthenticated, this.sendLinks);
         router.post("/create-broadcaster", auth.ifUserIsAdmin, this.createBroadcaster);
         router.put("/update/:id", auth.ifUserIsAdmin, this.updateBroadcaster);
+        router.delete("/delete/:id", auth.ifUserIsAdmin, this.deleteBroadcaster);
 
         return router;
     }
@@ -109,8 +110,21 @@ export class SbtBroadcasterController {
 
             if((error as errors).message === "Invalid Fields") return res.status(400).json({ error: "Campo digitado incorretamente. Verifique se digitou uma cidade ou um estado valido. As cidades devem ser escritas com letra maiuscula e acentuação. Exemplo: 'São Paulo' e os estados precisam ser siglas. exemplo: 'SP'. Já o codec, precisa ser: 'mxf', 'mov' ou 'mp4'"});
         }
+    }
 
+    private async deleteBroadcaster (req: Request, res: Response) {
+        const id = +req.params.id;
 
+        try {
+            await SbtBroadcaster.deleteBroadcaster(id);
+
+            return res.status(200).json({message: "Excluído com sucesso"});
+        } catch (error) {
+            if((error as errors).message === "Invalid ID") {
+                return res.status(400).json({error: "O id é invalido ou já foi excluido."});
+            }
+            if((error as errors).code === "P2025") return res.status(400).json({ error: "Emissora inexistente." });
+        }
     }
 
     // private async getFilteredHistory (req: Request, res: Response) {

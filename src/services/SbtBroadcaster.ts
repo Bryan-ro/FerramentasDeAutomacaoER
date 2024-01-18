@@ -80,6 +80,14 @@ export class SbtBroadcaster {
         } else throw new Error("Invalid Fields");
     }
 
+    public static async deleteBroadcaster (id: number) {
+        const deleted = await prisma.broadcastersSbt.delete({where: { id }});
+
+        if(!deleted) {
+            throw new Error("Invalid ID");
+        }
+    }
+
     // public async deleteBroadcaster (id: number) {
 
     // }
