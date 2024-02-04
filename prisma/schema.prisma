@@ -34,6 +34,15 @@ model BroadcastersBand {
   emails          String @db.LongText
 }
 
+model BroadcastersSbt {
+  id              Int    @id @default(autoincrement())
+  broadcasterName String @unique
+  city            String
+  state           String
+  codec           String
+  emails          String @db.LongText
+}
+
 model recordHistory {
   id           Int      @id @default(autoincrement())
   date         DateTime

@@ -3,7 +3,7 @@ import { broadcastersValidations } from "../validations/broadcastersValidations"
 
 const prisma = new PrismaClient();
 
-export class RecordBroadcaster {
+export class SbtBroadcaster {
     constructor (
         private broadcasterName: string,
         private city: string,
@@ -13,7 +13,7 @@ export class RecordBroadcaster {
     ) {}
 
     public static async getBroadcasterById(id: number) {
-        return await prisma.broadcastersReocord.findUnique({
+        return await prisma.broadcastersSbt.findUnique({
             where: {
                 id: id
             }
@@ -21,7 +21,7 @@ export class RecordBroadcaster {
     }
 
     public static async getBroadcasterFiltered(filter?: string) {
-        return await prisma.broadcastersReocord.findMany({
+        return await prisma.broadcastersSbt.findMany({
             where: {
                 OR: [
                     {
@@ -51,7 +51,7 @@ export class RecordBroadcaster {
 
     public async createBroadcaster () {
         if(broadcastersValidations.city(this.city) && broadcastersValidations.state(this.state) && broadcastersValidations.codec(this.codec)) {
-            await prisma.broadcastersReocord.create({
+            await prisma.broadcastersSbt.create({
                 data: {
                     broadcasterName: this.broadcasterName,
                     city: this.city,
@@ -65,7 +65,7 @@ export class RecordBroadcaster {
 
     public async updateBroadcaster (id: number) {
         if(broadcastersValidations.city(this.city) && broadcastersValidations.state(this.state) && broadcastersValidations.codec(this.codec)) {
-            await prisma.broadcastersReocord.update({
+            await prisma.broadcastersSbt.update({
                 data: {
                     broadcasterName: this.broadcasterName,
                     city: this.city,
@@ -81,12 +81,16 @@ export class RecordBroadcaster {
     }
 
     public static async deleteBroadcaster (id: number) {
-        const deleted = await prisma.broadcastersReocord.delete({where: { id }});
+        const deleted = await prisma.broadcastersSbt.delete({where: { id }});
 
         if(!deleted) {
             throw new Error("Invalid ID");
         }
     }
+
+    // public async deleteBroadcaster (id: number) {
+
+    // }
 }
 
 

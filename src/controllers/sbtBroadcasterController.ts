@@ -1,14 +1,14 @@
 import { Request, Response, Router } from "express";
-import { RecordBroadcaster } from "../services/RecordBroadcaster";
+import { SbtBroadcaster } from "../services/SbtBroadcaster";
 // import { RecordHistory } from "../services/RecordHistory";
 import { AuthMiddleware } from "../middlewares/authMiddleware";
 import { decryptPassword } from "../security/verifyLogin";
-import sendMail from "../utils/sendMail";
+import sendMail from "../utils/sendMailSbt";
 
 const auth = new AuthMiddleware();
 const router = Router();
 
-export class RecordBroadcasterController {
+export class SbtBroadcasterController {
     public routes () {
         router.get("/get-broadcaster", auth.ifUserIsAuthenticated, this.getFilteredBroadcaster);
         // router.get("/get-history", auth.ifUserIsAuthenticated, this.getFilteredHistory);
@@ -23,7 +23,7 @@ export class RecordBroadcasterController {
     private async getFilteredBroadcaster(req: Request, res: Response) {
         const { filter } = req.query;
 
-        const broadcaster = await RecordBroadcaster.getBroadcasterFiltered(filter?.toString());
+        const broadcaster = await SbtBroadcaster.getBroadcasterFiltered(filter?.toString());
 
         return res.status(200).json({ broadcasters: broadcaster });
     }
@@ -43,13 +43,13 @@ export class RecordBroadcasterController {
             // };
 
             for(const i in infos.broadcasters) {
-                const broadcaster = await RecordBroadcaster.getBroadcasterById(infos.broadcasters[i]);
+                const broadcaster = await SbtBroadcaster.getBroadcasterById(infos.broadcasters[i]);
                 const pass = decryptPassword(token);
 
                 if(broadcaster) {
                     const camelCaseName = name.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
 
-                    await sendMail(email, pass, camelCaseName, `${camelCaseName}<${email}>`, broadcaster.emails , infos.PointOfSaleIsRj, infos.advertiser, broadcaster.broadcasterName, infos);
+                    await sendMail(email, pass, camelCaseName, `${camelCaseName}<${email}>`, broadcaster.emails, infos.advertiser, broadcaster.broadcasterName, infos);
 
                     // history.destinations.push(broadcaster.broadcasterName);
                 }
@@ -79,7 +79,7 @@ export class RecordBroadcasterController {
         const { broadcasterName, city, state, codec, emails } = req.body;
 
         try {
-            const broadcasters = new RecordBroadcaster(broadcasterName, city, state, codec, emails);
+            const broadcasters = new SbtBroadcaster(broadcasterName, city, state, codec, emails);
             await broadcasters.createBroadcaster();
             return res.status(201).json({ message: "Emissora cadastrada com sucesso.", broadcaster: broadcasterName, status: 201 });
         } catch (error) {
@@ -96,9 +96,9 @@ export class RecordBroadcasterController {
         const { broadcasterName, city, state, codec, emails } = req.body;
 
         try {
-            const broadcaster = await RecordBroadcaster.getBroadcasterById(Number(id));
+            const broadcaster = await SbtBroadcaster.getBroadcasterById(Number(id));
 
-            const updateBroadcaster = new RecordBroadcaster(broadcasterName ?? broadcaster?.broadcasterName, city ?? broadcaster?.city, state ?? broadcaster?.state, codec ?? broadcaster?.codec, emails ?? broadcaster?.emails);
+            const updateBroadcaster = new SbtBroadcaster(broadcasterName ?? broadcaster?.broadcasterName, city ?? broadcaster?.city, state ?? broadcaster?.state, codec ?? broadcaster?.codec, emails ?? broadcaster?.emails);
 
             await updateBroadcaster.updateBroadcaster(Number(id));
 
@@ -116,7 +116,7 @@ export class RecordBroadcasterController {
         const id = +req.params.id;
 
         try {
-            await RecordBroadcaster.deleteBroadcaster(id);
+            await SbtBroadcaster.deleteBroadcaster(id);
 
             return res.status(200).json({message: "Excluído com sucesso"});
         } catch (error) {

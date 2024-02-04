@@ -9,10 +9,12 @@ const router = Router();
 
 export class BandBroadcasterController {
     public routes () {
+        router.get("/getbyid/:id", auth.ifUserIsAuthenticated, this.getBroadcasterById);
         router.get("/get-broadcaster", auth.ifUserIsAuthenticated, this.getFilteredBroadcaster);
         router.post("/send-links", auth.ifUserIsAuthenticated, this.sendLinks);
         router.post("/create-broadcaster", auth.ifUserIsAdmin, this.createBroadcaster);
         router.put("/update/:id", auth.ifUserIsAdmin, this.updateBroadcaster);
+        router.delete("/delete/:id", auth.ifUserIsAdmin, this.deleteBroadcaster);
 
         return router;
     }
@@ -23,6 +25,14 @@ export class BandBroadcasterController {
         const broadcaster = await BandBroadcaster.getBroadcasterFiltered(filter?.toString());
 
         return res.status(200).json({ broadcasters: broadcaster });
+    }
+
+    private async getBroadcasterById(req: Request, res: Response) {
+        const id = req.params.id;
+
+        const broadcaster = await BandBroadcaster.getBroadcasterById(Number(id));
+
+        return res.status(200).json({ broadcaster });
     }
 
     private async sendLinks (req: Request, res: Response) {
@@ -123,6 +133,21 @@ export class BandBroadcasterController {
         }
 
 
+    }
+
+    private async deleteBroadcaster (req: Request, res: Response) {
+        const id = +req.params.id;
+
+        try {
+            await BandBroadcaster.deleteBroadcaster(id);
+
+            return res.status(200).json({message: "Excluído com sucesso"});
+        } catch (error) {
+            if((error as errors).message === "Invalid ID") {
+                return res.status(400).json({error: "O id é invalido ou já foi excluido."});
+            }
+            if((error as errors).code === "P2025") return res.status(400).json({ error: "Emissora inexistente." });
+        }
     }
 
     // private async getFilteredHistory (req: Request, res: Response) {
